@@ -72,21 +72,20 @@ def scan(symbols: list[str] | None = None, strategies: list[str] | None = None,
     return out
 
 
-def format_signals(signals: list[Signal], leverage: float) -> str:
+def format_signals(signals: list[Signal], leverage: float, broker: str = "trade_republic") -> str:
     lines = []
     active = [s for s in signals if s.signal and s.validated]
     info = [s for s in signals if s.signal and not s.validated]
     if active:
         lines.append(f"=== SEÑALES DE COMPRA (x{leverage:g}) ===")
         for s in active:
-            inst = config.WATCHLIST.get(s.symbol, {})
-            prod = inst.get("x5" if leverage >= 5 else "x3", "")
+            barrier = s.close * (1 - 1 / leverage)
             lines.append(
                 f"* {s.name} [{s.strategy}] cierre {s.close:,.2f} ({s.date:%Y-%m-%d})\n"
                 f"    {s.detail}\n"
                 f"    Objetivo índice ~{s.tp_price:,.2f} | Stop índice ~{s.sl_price:,.2f} | "
                 f"Salida máx. {s.exit_by:%Y-%m-%d} o cuando la estrategia dé salida\n"
-                f"    Instrumentos: {prod}"
+                + _how_to_buy(s, leverage, barrier, broker)
             )
     else:
         lines.append("Sin señales de compra hoy.")
@@ -103,3 +102,18 @@ def format_signals(signals: list[Signal], leverage: float) -> str:
     if any(not s.regime_ok for s in signals):
         lines.append("\nBAJISTA = índice bajo su SMA200: no se abren largos apalancados.")
     return "\n".join(lines)
+
+
+def _how_to_buy(s: Signal, leverage: float, barrier: float, broker: str) -> str:
+    b = config.BROKERS.get(broker, config.BROKERS["ninguno"])
+    lev = f"{leverage:g}x"
+    if broker == "ninguno":
+        inst = config.WATCHLIST.get(s.symbol, {})
+        return f"\n    Instrumentos: {inst.get('x5' if leverage >= 5 else 'x3', '')}"
+    out = [f"\n    En {b['name']}:",
+           f"      a) Certificado factor: busca '{s.name} Faktor Long {lev}' (recomendado: sin barrera)",
+           f"      b) Knock-out Long: barrera ~{barrier:,.0f} (palanca ~{lev}); por debajo se pierde todo",
+           "      Tras comprar: venta límite +5 % y stop -10 % sobre el precio del producto."]
+    if s.symbol in config.USD_INDICES:
+        out.append("      Ojo: producto en € sobre índice en $ -> el EUR/USD también mueve el resultado.")
+    return "\n".join(out)

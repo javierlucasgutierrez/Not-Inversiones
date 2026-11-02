@@ -9,9 +9,15 @@ Dos modelos de apalancamiento:
   de gestión del ETP y la financiación de (L-1) veces el capital. Así aparece
   el "volatility decay" real que sufren estos productos.
 
-- "cfd": CFD / futuro con apalancamiento FIJO desde la entrada:
+- "cfd" / "knockout": CFD, futuro o knock-out con apalancamiento FIJO desde la entrada:
       valor = 1 + L * (P / P_entrada - 1) - financiación acumulada
-  Si el valor llega a 0 la posición se liquida (pierdes lo asignado).
+  Si el valor llega a 0 la posición se liquida (pierdes lo asignado). En un
+  knock-out esa es la barrera: con palanca L, barrera ~ entrada * (1 - 1/L).
+  Diferencia: en "cfd" el coste por lado se aplica al nocional (L veces), en
+  "knockout" a la horquilla del propio certificado.
+
+Moneda: si se pasa `fx` (USD por 1 EUR, p. ej. EURUSD=X), el resultado se mide
+en euros, como le ocurre a un inversor europeo con un producto no cubierto.
 
 Las señales se calculan con el cierre del día t (sin mirar el futuro). Take
 profit y stop se comprueban dentro del día con máximo/mínimo; si en el mismo día
@@ -41,6 +47,8 @@ class BTConfig:
     annual_rate: float = 0.04         # tipo de financiación anual del apalancamiento
     expense_ratio: float = 0.0095     # comisión anual del ETP apalancado (solo modo etf, L>1)
     allocation: float = 1.0           # fracción del capital asignada a cada operación
+    fixed_fee: float = 0.0            # comisión fija por orden en € (Trade Republic: 1 €)
+    capital: float = 10_000.0         # capital inicial en € (para que la comisión fija pese lo real)
 
 
 @dataclass
@@ -55,7 +63,8 @@ class Result:
         return compute_stats(self.trades, self.equity)
 
 
-def run(df: pd.DataFrame, strategy: Strategy, cfg: BTConfig, symbol: str = "") -> Result:
+def run(df: pd.DataFrame, strategy: Strategy, cfg: BTConfig, symbol: str = "",
+        fx: pd.Series | None = None) -> Result:
     if "sma200" not in df:
         df = add_indicators(df)
     df = df.dropna(subset=["sma200", "atr14"])
@@ -66,6 +75,8 @@ def run(df: pd.DataFrame, strategy: Strategy, cfg: BTConfig, symbol: str = "") -
     C = df["Close"].to_numpy(float)
     ATR = df["atr14"].to_numpy(float)
     dates = df.index
+    FX = (fx.reindex(dates).ffill().bfill().to_numpy(float) if fx is not None
+          else np.ones(len(df)))
     entry_sig = strategy.entry_signal(df).to_numpy()
     exit_sig = strategy.exit_signal(df).to_numpy()
     n = len(df)
@@ -78,7 +89,7 @@ def run(df: pd.DataFrame, strategy: Strategy, cfg: BTConfig, symbol: str = "") -
         side_cost = cfg.cost_per_side
     else:
         daily_cost = L * cfg.annual_rate / 252
-        side_cost = cfg.cost_per_side * L
+        side_cost = cfg.cost_per_side * (L if cfg.mode == "cfd" else 1)
 
     # Serie sintética del producto apalancado (modo etf).
     r = np.zeros(n)
@@ -96,6 +107,12 @@ def run(df: pd.DataFrame, strategy: Strategy, cfg: BTConfig, symbol: str = "") -
         if etf:
             return C[t - 1] * (1 + (V * st["nav_entry"] / nav[t - 1] - 1) / L)
         return st["px"] * (1 + (V - 1 + st["fin"]) / L)
+
+    def fee_frac(st: dict) -> float:
+        """Comisión fija por orden como fracción del tamaño de la posición."""
+        if not cfg.fixed_fee:
+            return 0.0
+        return cfg.fixed_fee / max(cfg.capital * st["cash"] * cfg.allocation, 1e-9)
 
     def open_position(t: int, at_open: bool) -> dict:
         px = O[t] if at_open else C[t]
@@ -152,9 +169,10 @@ def run(df: pd.DataFrame, strategy: Strategy, cfg: BTConfig, symbol: str = "") -
 
             if exit_px is not None:
                 v = value_at(exit_px, t, st)
-                if not etf and v <= 0:
-                    reason = "liquidated"
-                ret = v * (1 - side_cost) ** 2 - 1
+                if not etf and v <= 1e-9:
+                    reason = "knock_out" if cfg.mode == "knockout" else "liquidated"
+                v *= FX[st["i"]] / FX[t]
+                ret = max(v * (1 - side_cost) ** 2 - 1 - 2 * fee_frac(st), -1.0)
                 cash = st["cash"] * (1 + cfg.allocation * ret)
                 trades.append({
                     "entry_date": dates[st["i"]], "exit_date": dates[t],
@@ -169,13 +187,14 @@ def run(df: pd.DataFrame, strategy: Strategy, cfg: BTConfig, symbol: str = "") -
         if st is None:
             equity[t] = cash
         elif t == st["i"] and not st["at_open"]:
-            equity[t] = st["cash"] * (1 - cfg.allocation * side_cost)
+            equity[t] = st["cash"] * (1 - cfg.allocation * (side_cost + fee_frac(st)))
         else:
-            v = value_at(C[t], t, st)
-            equity[t] = st["cash"] * (1 + cfg.allocation * (v * (1 - side_cost) - 1))
+            v = value_at(C[t], t, st) * FX[st["i"]] / FX[t]
+            equity[t] = st["cash"] * (1 + cfg.allocation * (v * (1 - side_cost) - 1 - fee_frac(st)))
 
         # 4) Nueva señal al cierre (sólo si estamos fuera).
-        if st is None and not pending and entry_sig[t]:
+        too_small = cfg.fixed_fee and cfg.capital * cash * cfg.allocation < 25 * cfg.fixed_fee
+        if st is None and not pending and entry_sig[t] and not too_small:
             if cfg.entry == "close":
                 st = open_position(t, at_open=False)
             elif t + 1 < n:
@@ -184,6 +203,20 @@ def run(df: pd.DataFrame, strategy: Strategy, cfg: BTConfig, symbol: str = "") -
     trades_df = pd.DataFrame(trades)
     eq = pd.Series(equity, index=dates, name="equity")
     return Result(trades_df, eq, cfg, strategy.name, symbol)
+
+
+def make_config(leverage: float = 3, product: str = "factor", broker: str = "trade_republic",
+                **overrides) -> BTConfig:
+    """BTConfig con los costes del bróker y del tipo de producto elegidos."""
+    from . import config
+
+    b = config.BROKERS[broker]
+    p = config.PRODUCTS[product]
+    kw = dict(leverage=leverage, mode=p["mode"], annual_rate=p["annual_rate"],
+              expense_ratio=p["expense_ratio"], cost_per_side=b["cost_per_side"],
+              fixed_fee=b["fixed_fee"])
+    kw.update(overrides)
+    return BTConfig(**kw)
 
 
 def compute_stats(trades: pd.DataFrame, equity: pd.Series) -> dict:

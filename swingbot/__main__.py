@@ -5,6 +5,8 @@ Ejemplos:
   python -m swingbot scan --leverage 5
   python -m swingbot backtest ^GSPC pullback --leverage 3 --tp 0.05 --sl 0.10
   python -m swingbot report                    # informe completo -> reports/
+  python -m swingbot backtest ^GSPC pullback --broker trade_republic --product factor --capital 2000
+  python -m swingbot broker-report --broker trade_republic   # costes reales de TR por tamaño de cuenta
 """
 from __future__ import annotations
 
@@ -30,12 +32,18 @@ def main(argv=None):
     s.add_argument("--leverage", type=float, default=config.DEFAULT_LEVERAGE)
     s.add_argument("--tp", type=_opt_float, default=config.DEFAULT_TAKE_PROFIT)
     s.add_argument("--sl", type=_opt_float, default=config.DEFAULT_STOP_LOSS)
+    s.add_argument("--broker", choices=list(config.BROKERS), default="trade_republic")
 
     b = sub.add_parser("backtest", help="Backtest de una estrategia")
     b.add_argument("symbol")
     b.add_argument("strategy", choices=list(STRATEGIES))
     b.add_argument("--leverage", type=float, default=config.DEFAULT_LEVERAGE)
-    b.add_argument("--mode", choices=["etf", "cfd"], default="etf")
+    b.add_argument("--mode", choices=["etf", "cfd", "knockout"], default=None,
+                   help="Fuerza el modelo de apalancamiento (por defecto lo da --product)")
+    b.add_argument("--broker", choices=list(config.BROKERS), default="ninguno")
+    b.add_argument("--product", choices=list(config.PRODUCTS), default="etp")
+    b.add_argument("--capital", type=float, default=10_000, help="Capital inicial en €")
+    b.add_argument("--eur", action="store_true", help="Medir resultado en € (EUR/USD incluido)")
     b.add_argument("--entry", choices=["close", "next_open"], default="close")
     b.add_argument("--tp", type=_opt_float, default=config.DEFAULT_TAKE_PROFIT)
     b.add_argument("--sl", type=_opt_float, default=config.DEFAULT_STOP_LOSS)
@@ -43,6 +51,10 @@ def main(argv=None):
     b.add_argument("--allocation", type=float, default=1.0)
     b.add_argument("--start", default="1995-01-01")
     b.add_argument("--trades", action="store_true", help="Muestra las últimas operaciones")
+
+    br = sub.add_parser("broker-report", help="Backtest con costes del bróker por tamaño de cuenta")
+    br.add_argument("--broker", choices=list(config.BROKERS), default="trade_republic")
+    br.add_argument("--out", default="reports")
 
     r = sub.add_parser("report", help="Informe de robustez completo")
     r.add_argument("--symbols", nargs="*")
@@ -52,19 +64,34 @@ def main(argv=None):
 
     if a.cmd == "scan":
         sigs = scanner.scan(a.symbols, a.strategies, a.leverage, a.tp, a.sl)
-        print(scanner.format_signals(sigs, a.leverage))
+        print(scanner.format_signals(sigs, a.leverage, a.broker))
 
     elif a.cmd == "backtest":
         df = add_indicators(data.load(a.symbol, start=a.start))
-        cfg = bt.BTConfig(leverage=a.leverage, mode=a.mode, entry=a.entry, take_profit=a.tp,
-                          stop_loss=a.sl, stop_atr=a.stop_atr, allocation=a.allocation)
-        res = bt.run(df, get(a.strategy), cfg, a.symbol)
+        over = dict(entry=a.entry, take_profit=a.tp, stop_loss=a.sl, stop_atr=a.stop_atr,
+                    allocation=a.allocation, capital=a.capital)
+        if a.mode:
+            over["mode"] = a.mode
+        cfg = bt.make_config(a.leverage, a.product, a.broker, **over)
+        fx = None
+        if a.eur and a.symbol in config.USD_INDICES:
+            fx = data.load(config.FX_SYMBOL, start="2003-12-01")["Close"]
+            df = df.loc[fx.index[0]:]
+        res = bt.run(df, get(a.strategy), cfg, a.symbol, fx=fx)
         st = res.stats()
         print(f"{a.symbol} | {a.strategy} | {cfg}")
         for k, v in st.items():
             print(f"  {k:16} {v:.4f}" if isinstance(v, float) else f"  {k:16} {v}")
         if a.trades and not res.trades.empty:
             print(res.trades.tail(20).to_string(index=False))
+
+    elif a.cmd == "broker-report":
+        out = Path(a.out)
+        out.mkdir(exist_ok=True)
+        tab = report.broker_report(a.broker)
+        tab.to_csv(out / f"broker_{a.broker}.csv", index=False)
+        print(f"## {config.BROKERS[a.broker]['name']} — x3/x5, TP5 % SL10 %, resultado en €, 2004-hoy\n")
+        print(report.fmt(tab))
 
     elif a.cmd == "report":
         out = Path(a.out)

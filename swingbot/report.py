@@ -73,3 +73,29 @@ def _has_tabulate() -> bool:
         return True
     except ImportError:
         return False
+
+
+def broker_report(broker: str = "trade_republic", symbols=("^GSPC", "^NDX"),
+                  strategies=("pullback", "rsi2"), capitals=(500, 1_000, 3_000, 10_000),
+                  products=("factor", "knockout"), leverages=(3, 5)):
+    """Mismo sistema, pero con los costes reales del bróker, en euros y desde 2004
+    (inicio del histórico EUR/USD)."""
+    fx = data.load(config.FX_SYMBOL, start="2003-12-01")["Close"]
+    rows = []
+    for sym in symbols:
+        df = add_indicators(data.load(sym, start="1995-01-01")).loc[fx.index[0]:]
+        f = fx if sym in config.USD_INDICES else None
+        for name in strategies:
+            for prod in products:
+                for lev in leverages:
+                    for cap in capitals:
+                        cfg = bt.make_config(lev, prod, broker, take_profit=config.DEFAULT_TAKE_PROFIT,
+                                             stop_loss=config.DEFAULT_STOP_LOSS, capital=cap)
+                        s = bt.run(df, get(name), cfg, sym, fx=f).stats()
+                        row = _row(sym, name, lev, prod, s)
+                        row["capital_€"] = cap
+                        row["final_€"] = round(cap * s.get("final_equity", 1))
+                        rows.append(row)
+    cols = ["indice", "estrategia", "gestion", "lev", "capital_€", "ops/año", "aciertos",
+            "media_op", "peor_op", "PF", "CAGR", "maxDD", "final_€"]
+    return pd.DataFrame(rows)[cols].rename(columns={"gestion": "producto"})

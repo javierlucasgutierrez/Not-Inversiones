@@ -114,6 +114,10 @@ pip install -r requirements.txt
 python -m swingbot scan
 python -m swingbot scan --leverage 5 --symbols ^GSPC
 
+# Backtest con los costes de Trade Republic, certificado factor, 2.000 €, resultado en €
+python -m swingbot backtest ^GSPC pullback --broker trade_republic --product factor --capital 2000 --eur
+python -m swingbot broker-report --broker trade_republic
+
 # Backtest de una estrategia
 python -m swingbot backtest ^GSPC pullback --leverage 3 --tp 0.05 --sl 0.10
 python -m swingbot backtest ^NDX rsi2 --leverage 3 --sl none --trades
@@ -145,7 +149,68 @@ Cómo operar una señal:
 
 ---
 
-## 5. Estructura
+## 5. Operar desde Trade Republic (o DEGIRO)
+
+### Qué producto usar
+Desde la UE **no se pueden comprar los ETFs apalancados de EE.UU.** (UPRO, TQQQ…)
+porque no tienen KID (normativa PRIIPs). Las alternativas son:
+
+| Producto | Cómo funciona | Modelo en el bot | Comentario |
+|---|---|---|---|
+| **Certificado factor Long 3x** ✅ | Palanca constante con reinicio diario, sin vencimiento | `--product factor` | **Recomendado**: es lo más parecido a lo que hemos probado. |
+| Knock-out / Turbo Long | Palanca fija desde la compra; si el índice toca la barrera, el producto vale 0 | `--product knockout` | Funciona, pero algo peor y con riesgo de "quemarse". |
+| ETP UCITS 3x (WisdomTree) | Como un ETF x3 europeo | `--product etp` | Comprueba si tu bróker lo tiene (ISIN IE00B7Y34M31 / IE00BLRPRL42). |
+
+Busca en la app el índice + "Faktor Long 3x" o "Knock-out Long" y revisa en la
+ficha el emisor, la palanca, la horquilla y el KID. El bot no puede comprobar el
+catálogo de Trade Republic: te dice *qué* buscar, no un ISIN concreto.
+
+**Horario:** Trade Republic negocia más o menos de 7:30 a 23:00 (hora de España), así
+que puedes comprar unos 15 minutos antes del cierre de EE.UU. (22:00, o 21:00 en las
+semanas de cambio de hora). Eso es justo lo que asume el backtest.
+
+**Moneda:** un certificado en € sobre el S&P 500 o el Nasdaq no suele estar cubierto,
+así que el EUR/USD también suma o resta. El backtest de bróker lo incluye.
+
+### Resultados con costes de Trade Republic (2004-2026, en €)
+
+Costes simulados: 1 € por orden, 0,15 % de horquilla por lado, financiación del
+emisor al 5 % anual y comisión de gestión del 0,5 %. TP +5 %, SL −10 %.
+Generado con `python -m swingbot broker-report` (tabla completa en
+`reports/broker_trade_republic.csv`).
+
+| Índice | Estrategia | Producto | Lev. | Capital | Aciertos | Media/op | PF | CAGR | Máx. caída | 500 € / 1.000 € / 10.000 € acaban en |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **S&P 500** | **pullback** | **factor** | **x3** | 1.000 € | 76 % | +0,9 % | 2,03 | +8,0 % | −30 % | 2.355 / 5.797 / 67.749 € |
+| S&P 500 | pullback | knockout | x3 | 1.000 € | 76 % | +0,8 % | 1,87 | +7,0 % | −33 % | 1.881 / 4.731 / 56.042 € |
+| S&P 500 | pullback | factor | x5 | 1.000 € | 76 % | +1,0 % | 1,58 | +8,6 % | −45 % | 2.791 / 6.618 / 75.507 € |
+| S&P 500 | rsi2 | factor | x3 | 1.000 € | 72 % | +0,7 % | 1,60 | +5,5 % | −33 % | 1.198 / 3.395 / 42.948 € |
+| Nasdaq-100 | pullback | factor | x3 | 1.000 € | 73 % | +0,7 % | 1,43 | +5,6 % | −46 % | 1.234 / 3.510 / 44.490 € |
+| Nasdaq-100 | rsi2 | knockout | x5 | 500 € | 63 % | −1,3 % | 0,64 | −12,5 % | −96 % | **23 €** (ruina) |
+
+Conclusiones para Trade Republic:
+
+1. **Configuración recomendada: S&P 500 + `pullback` + certificado factor Long x3.**
+   Es la que mejor aguanta los costes reales.
+2. **El 1 € por orden pesa en cuentas pequeñas**: con 500 € se pierde ~1,7 puntos
+   de rentabilidad al año frente a 10.000 €. Por debajo de ~1.000 € compensa poco.
+3. **x5 casi no añade rentabilidad y la caída máxima sube del 30 % al 45-60 %.**
+4. El Nasdaq-100 con `rsi2` deja de compensar con los costes reales, y a x5 con
+   knock-outs llegó a arruinar la cuenta.
+5. **DEGIRO:** `--broker degiro` simula 2 € por orden. Comprueba si en tu país
+   ofrece certificados factor o sólo turbos/sprinters.
+
+### Cómo operar una señal en Trade Republic
+1. Ejecuta `python -m swingbot scan` hacia las 21:40 (hora de España; 20:40 en las
+   semanas de cambio de hora).
+2. Si hay **SEÑAL**, compra el certificado factor Long 3x del índice antes de las 22:00.
+3. Pon una **orden límite de venta a +5 %** y una **orden stop a −10 %** sobre tu precio de compra.
+4. Cada tarde, al cierre: si el índice cierra por encima de su media de 5 días, o han
+   pasado 10 sesiones, vende.
+
+---
+
+## 6. Estructura
 
 ```
 swingbot/
@@ -156,7 +221,7 @@ swingbot/
                  intradía con gaps, costes, financiación, liquidación, métricas
   scanner.py     señales del día
   report.py      rejilla de robustez + validación fuera de muestra
-  config.py      índices, instrumentos y parámetros por defecto
+  config.py      índices, instrumentos, brókers (TR / DEGIRO), productos y parámetros
 tests/           tests del motor (apalancamiento, TP/SL, gaps)
 ```
 
@@ -164,7 +229,7 @@ Supuestos conservadores del motor: si en un mismo día se tocan TP y stop se
 asume el stop; los gaps de apertura se ejecutan en la apertura (el stop no
 protege de un gap); las señales sólo usan datos hasta el cierre del día.
 
-## 6. Próximos pasos posibles
+## 7. Próximos pasos posibles
 
 - Avisos automáticos (Telegram / email) con el escáner programado cada día.
 - Stop dinámico por volatilidad (ajustado al Nasdaq).

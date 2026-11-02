@@ -84,3 +84,32 @@ def test_rsi_bounds():
     s = pd.Series(np.random.default_rng(0).normal(0, 1, 300).cumsum() + 100)
     r = rsi(s, 2).dropna()
     assert ((r >= 0) & (r <= 100)).all()
+
+
+def test_fixed_fee_weighs_more_on_small_accounts():
+    closes = [100, 100, 102, 104, 104]
+    df = _prepared(closes)
+    base = dict(ZERO_COST, leverage=3, fixed_fee=1.0)
+    small = bt.run(df, _one_trade_strategy(1, 2), bt.BTConfig(capital=200, **base))
+    big = bt.run(df, _one_trade_strategy(1, 2), bt.BTConfig(capital=20_000, **base))
+    gross = bt.run(df, _one_trade_strategy(1, 2), bt.BTConfig(leverage=3, **ZERO_COST))
+    g = gross.trades["ret"].iloc[0]
+    assert small.trades["ret"].iloc[0] == pytest.approx(g - 2 / 200)
+    assert big.trades["ret"].iloc[0] == pytest.approx(g - 2 / 20_000)
+
+
+def test_knockout_is_knocked_out_at_barrier():
+    closes = [100, 100, 95, 60, 60]
+    df = _prepared(closes)
+    cfg = bt.BTConfig(leverage=3, mode="knockout", **ZERO_COST)
+    t = bt.run(df, _one_trade_strategy(1, 10), cfg).trades.iloc[0]
+    assert t["reason"] == "knock_out"
+    assert t["ret"] == pytest.approx(-1.0)
+
+
+def test_eur_conversion():
+    closes = [100, 100, 110, 110]
+    df = _prepared(closes)
+    fx = pd.Series([1.0, 1.0, 1.1, 1.1], index=df.index)  # el dólar se deprecia un 10 %
+    t = bt.run(df, _one_trade_strategy(1, 1), bt.BTConfig(leverage=1, **ZERO_COST), fx=fx).trades.iloc[0]
+    assert t["ret"] == pytest.approx(1.10 / 1.10 - 1)
