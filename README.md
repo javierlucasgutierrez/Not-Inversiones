@@ -280,7 +280,39 @@ dividendos (supuesto conservador).
 
 ---
 
-## 7. Estructura
+## 7. La estrategia recomendada: x3 con tendencia mensual (`tendencia`)
+
+Es la única que, en el histórico, **ganó más que la inversión pasiva**, a cambio
+de más riesgo.
+
+**Reglas.** Se aplican el último día hábil de cada mes, hacia las 21:45 (hora de España):
+- S&P 500 **por encima** de su media de 200 sesiones → **DENTRO**: certificado factor
+  Long x3 sobre el S&P 500. Las aportaciones nuevas también van al x3.
+- S&P 500 **por debajo** → **FUERA**: vender el x3 y pasar a un ETF normal (x1) del S&P 500.
+- Entre revisiones no se toca nada.
+
+```bash
+python -m swingbot tendencia             # señal del mes
+python -m swingbot tendencia --backtest  # señal + histórico
+```
+
+**50 €/mes, con costes, financiación e impuestos:**
+
+| | Pasivo x1 | x3 tendencia → liquidez | **x3 tendencia → x1** |
+|---|---|---|---|
+| Desde 2004 (13.700 € aportados) | 67.308 € | 161.139 € | **196.524 €** |
+| Desde 2016 (6.500 € aportados) | 13.820 € | 15.282 € | **18.874 €** |
+| Ventanas 10 años en €, 2004+ | — | gana 12/13 | **gana 13/13 (peor +19 %)** |
+| Ventanas 10 años en $, 1994+ (incluye puntocom) | — | gana 22/23 | **gana 23/23 (peor +13 %)** |
+| Peor caída | −51/−55 % | −60/−61 % | **−56/−66 %** |
+
+Riesgos: caídas de más del 60 % en algún momento; el pasado no garantiza el futuro
+(1994-2026 ha sido un periodo muy bueno para la bolsa de EE.UU.); los tipos de
+financiación por año son aproximados; se tributa en cada cambio DENTRO/FUERA.
+
+---
+
+## 8. Estructura
 
 ```
 swingbot/
@@ -291,6 +323,7 @@ swingbot/
                  intradía con gaps, costes, financiación, liquidación, métricas
   scanner.py     señales del día
   report.py      rejilla de robustez + validación fuera de muestra
+  trend.py       estrategia x3 con tendencia mensual (señal + backtest)
   compare.py     bot frente a plan ETF/fondo periódico y tendencia con traspasos (impuestos, gráfico)
   config.py      índices, instrumentos, brókers (TR / DEGIRO), productos y parámetros
 tests/           tests del motor (apalancamiento, TP/SL, gaps)
@@ -300,7 +333,7 @@ Supuestos conservadores del motor: si en un mismo día se tocan TP y stop se
 asume el stop; los gaps de apertura se ejecutan en la apertura (el stop no
 protege de un gap); las señales sólo usan datos hasta el cierre del día.
 
-## 8. Próximos pasos posibles
+## 9. Próximos pasos posibles
 
 - Avisos automáticos (Telegram / email) con el escáner programado cada día.
 - Stop dinámico por volatilidad (ajustado al Nasdaq).

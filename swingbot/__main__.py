@@ -58,6 +58,8 @@ def main(argv=None):
 
     t = sub.add_parser("tendencia", help="Señal mensual de la estrategia x3 con tendencia")
     t.add_argument("--leverage", type=float, default=3)
+    t.add_argument("--out", choices=["x1", "cash"], default="x1",
+                   help="Dónde estar cuando la señal es FUERA (ETF x1 o liquidez)")
     t.add_argument("--backtest", action="store_true", help="Mostrar también el histórico")
     t.add_argument("--initial", type=float, default=50)
     t.add_argument("--monthly", type=float, default=50)
@@ -111,15 +113,21 @@ def main(argv=None):
 
     elif a.cmd == "tendencia":
         from . import trend, compare as cmp
-        print(trend.format_status(trend.status(), a.leverage))
+        print(trend.format_status(trend.status(), a.leverage, a.out))
         if a.backtest:
             print(f"\nHistórico ({cmp._eur(a.initial)} + {cmp._eur(a.monthly)}/mes, en €, "
                   "con costes e impuestos):")
             for start in ("2004", "2016"):
-                for lev in (1, 2, a.leverage):
-                    p = trend.backtest(lev, f"{start}-01-01", initial=a.initial, monthly=a.monthly)
+                base = cmp.build_paths(start=f"{start}-01-01", initial=a.initial,
+                                       monthly=a.monthly, funds=False)[0]
+                print(f"  desde {start} pasivo x1: aportado {cmp._eur(base.invested.iloc[-1])} -> "
+                      f"{cmp._eur(base.value.iloc[-1])}  TIR {cmp.xirr(base.flows):+.1%}  "
+                      f"peor caída {(base.twr / base.twr.cummax() - 1).min():+.0%}")
+                for lev, out in ((2, "cash"), (a.leverage, "cash"), (a.leverage, "x1")):
+                    p = trend.backtest(lev, f"{start}-01-01", initial=a.initial,
+                                       monthly=a.monthly, out=out)
                     dd = (p.twr / p.twr.cummax() - 1).min()
-                    print(f"  desde {start} x{lev:g} con tendencia: aportado "
+                    print(f"  desde {start} x{lev:g} tendencia, fuera->{out}: aportado "
                           f"{cmp._eur(p.invested.iloc[-1])} -> {cmp._eur(p.value.iloc[-1])}  "
                           f"TIR {cmp.xirr(p.flows):+.1%}  peor caída {dd:+.0%}")
 

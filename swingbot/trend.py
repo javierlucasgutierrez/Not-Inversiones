@@ -4,6 +4,10 @@ Regla: el ÚLTIMO día hábil de cada mes, con el cierre del S&P 500:
   - cierre > media de 200 sesiones  -> DENTRO: mantener / comprar el producto x2 o x3
   - cierre <= media de 200 sesiones -> FUERA: vender todo y quedarse en liquidez
 Entre revisiones no se hace nada (ni stops ni operaciones intermedias).
+
+Variante "x1" (out="x1"): cuando está FUERA, en lugar de liquidez se tiene un ETF
+normal (x1) del S&P 500. Así nunca se está fuera del mercado y, en el histórico,
+nunca quedó por detrás de la inversión pasiva.
 """
 from __future__ import annotations
 
@@ -43,7 +47,7 @@ def status(refresh: bool = True) -> dict:
 
 
 def backtest(leverage: float = 3, start: str = "2004-01-01", end=None, initial=50.0,
-             monthly=50.0, fee: float = 1.0) -> c.Path:
+             monthly=50.0, fee: float = 1.0, out: str = "cash") -> c.Path:
     """Simulación en € con aportaciones, financiación, comisiones e impuestos anuales."""
     fx = data.load(config.FX_SYMBOL, start="2003-12-01")["Close"]
     spy = data.load("SPY", start="1993-01-01")["Close"]
@@ -58,17 +62,22 @@ def backtest(leverage: float = 3, start: str = "2004-01-01", end=None, initial=5
            == df.index)
     inside = (df["Close"] > df["sma200"]).where(eom).ffill().fillna(True).astype(float)
     inside = inside.shift(1).fillna(1)
-    rets = inside * ((1 + r_lev) * fxr - 1) + (1 - inside) * c.eur_cash_daily(d, fee=0)
+    r_out = (1 + r) * fxr - 1 if out == "x1" else c.eur_cash_daily(d, fee=0)
+    rets = inside * ((1 + r_lev) * fxr - 1) + (1 - inside) * r_out
     switches = (inside.diff().abs() > 0).astype(int)
-    return c._simulate(f"x{leverage:g} con tendencia", rets, d, initial, monthly, switches, fee,
-                       "annual")
+    orders = 2 if out == "x1" else 1  # vender x3 + comprar ETF
+    return c._simulate(f"x{leverage:g} con tendencia -> {out}", rets, d, initial, monthly,
+                       switches, orders * fee, "annual")
 
 
-def format_status(st: dict, leverage: float) -> str:
+def format_status(st: dict, leverage: float, out: str = "x1") -> str:
     estado = "DENTRO ✅" if st["inside"] else "FUERA ⛔"
-    accion = (f"Mantener / comprar el certificado factor Long x{leverage:g} sobre el S&P 500."
+    refugio = ("pasar ese dinero a un ETF normal (x1) del S&P 500" if out == "x1"
+               else "quedarse en liquidez")
+    accion = (f"Mantener / comprar el certificado factor Long x{leverage:g} sobre el S&P 500 "
+              "(las aportaciones nuevas, también al x3)."
               if st["inside"] else
-              "Vender todo el producto apalancado y quedarse en liquidez.")
+              f"Vender todo el producto apalancado y {refugio}.")
     return "\n".join([
         f"Estrategia de tendencia mensual (S&P 500, x{leverage:g})",
         f"  Última revisión ({st['check_date']:%d/%m/%Y}): cierre {st['check_close']:,.2f} vs "
