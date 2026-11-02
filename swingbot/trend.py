@@ -29,12 +29,13 @@ SYMBOL = "^GSPC"
 def status(refresh: bool = True) -> dict:
     df = add_indicators(data.load(SYMBOL, start="2015-01-01", refresh=refresh))
     last = df.iloc[-1]
-    eom_mask = df.index.to_series().groupby(df.index.to_period("M")).transform("max") == df.index
-    eom = df[eom_mask.values]
+    # Fin de mes real: última sesión de cada mes YA terminado (el mes en curso sólo
+    # cuenta si hoy es su último día hábil).
+    eom = df[(df["days_left_month"] == 0).values]
     # Si el último dato es el último día del mes en curso, ya cuenta como revisión.
     month_end_today = (df.index[-1] + pd.offsets.BMonthEnd(0)).normalize()
-    last_check = eom.iloc[-1] if df.index[-1] < month_end_today else df.iloc[-1]
-    last_check_date = eom.index[-1] if df.index[-1] < month_end_today else df.index[-1]
+    last_check = eom.iloc[-1]
+    last_check_date = eom.index[-1]
     next_check = (df.index[-1] + pd.offsets.BMonthEnd(1 if df.index[-1] >= month_end_today else 0))
     return {
         "date": df.index[-1], "close": float(last["Close"]), "sma200": float(last["sma200"]),
