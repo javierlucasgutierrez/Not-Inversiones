@@ -213,54 +213,70 @@ Conclusiones para Trade Republic:
 
 ---
 
-## 6. ¿Gana más que aportar periódicamente a un ETF?
+## 6. ¿Gana más que aportar periódicamente a un ETF o fondo?
 
 `python -m swingbot compare --plot` simula **las mismas aportaciones** (1.000 € al
-principio + 200 €/mes) en cinco opciones. Todo en euros, con costes de Trade Republic
-e **impuestos españoles** (escala del ahorro 19-28 %). El plan ETF incluye dividendos
-y paga impuestos sólo al vender al final; el bot paga cada año porque vende en cada
-operación. Puedes cambiar las cantidades: `--initial 5000 --monthly 300 --start 2010`.
+principio + 200 €/mes) en seis opciones. Todo en euros, con costes e **impuestos
+españoles** (escala del ahorro 19-28 %). El plan ETF/fondo incluye dividendos y
+sólo paga impuestos al vender al final; el bot paga cada año porque vende en cada
+operación. La liquidez cobra el tipo del euro de cada año (negativo en 2015-2021).
+Puedes cambiar las cantidades: `--initial 5000 --monthly 300 --start 2010`.
 
 ![Comparación](reports/comparacion.png)
 
 **2004-2026 (1.000 € + 200 €/mes = 55.600 € aportados):**
 
-| Opción | Valor final neto | Impuestos pagados | TIR anual | Peor caída |
+| Opción | Valor final neto | Impuestos | TIR anual | Peor caída |
 |---|---|---|---|---|
-| Plan ETF periódico | 269.943 € | 66.784 € | +11,9 % | −51 % |
-| Bot solo x3 (liquidez sin remunerar) | 133.908 € | 19.499 € | +6,9 % | −29 % |
-| Bot + liquidez al 2 % | 165.383 € | 27.595 € | +8,5 % | −26 % |
-| **ETF + turbo en señales** | **303.221 €** | 65.745 € | **+12,7 %** | −51 % |
-| 80 % ETF / 20 % bot | 250.414 € | 56.746 € | +11,4 % | −42 % |
+| **Plan ETF / fondo indexado periódico** | **269.943 €** | 66.784 € | **+11,9 %** | −51 % |
+| Bot solo x3 (Trade Republic) | 133.908 € | 19.499 € | +6,9 % | −29 % |
+| Bot + liquidez remunerada | 147.054 € | 22.913 € | +7,6 % | −30 % |
+| ETF + turbo en señales | 303.221 € | 65.745 € | +12,7 % | −51 % |
+| 80 % ETF / 20 % bot | 246.760 € | 55.861 € | +11,3 % | −41 % |
+| Fondo + tendencia (traspasos, MyInvestor) | 211.908 € | 45.319 € | +10,3 % | **−21 %** |
 
 **Repetido en todas las ventanas de 10 años (2004-13 … 2016-25):**
 
-| Opción | Gana al plan ETF | Diferencia media |
-|---|---|---|
-| Bot solo / bot + liquidez | 1 de 13 | −32 % / −26 % |
-| ETF + turbo en señales | 6 de 13 | −0,8 % |
-| 80 % ETF / 20 % bot | 1 de 13 | −5,5 % |
+| Opción | Gana al plan | Diferencia media | Peor / mejor ventana |
+|---|---|---|---|
+| Bot solo | 1 de 13 | −32 % | −49 % / +6 % |
+| Bot + liquidez remunerada | 1 de 13 | −31 % | −49 % / +13 % |
+| ETF + turbo en señales | 6 de 13 | −0,8 % | −15 % / +15 % |
+| 80 % ETF / 20 % bot | 1 de 13 | −6 % | −10 % / +2 % |
+| Fondo + tendencia (traspasos) | 2 de 13 | −9 % | −18 % / +10 % |
+
+"Fondo + tendencia": el último día de cada mes, si el S&P 500 está por encima de su
+media de 200 sesiones, el dinero está en un fondo indexado; si no, se traspasa a un
+fondo monetario (Faber, 2007). En España **los traspasos entre fondos no tributan**,
+así que esta estrategia no tiene el problema fiscal del bot. Se simula con 3 sesiones
+de retraso por traspaso.
 
 Conclusiones:
 
-1. **El bot solo NO gana a aportar periódicamente.** Tiene el dinero parado el ~92 %
-   del tiempo y la bolsa sube la mayoría de los días. Sólo ganó en la década que
-   empieza con la crisis de 2008, porque se cayó mucho menos.
-2. **"ETF + turbo"** (tener siempre el ETF y cambiarlo por el x3 sólo cuando hay señal)
-   es la única opción que mejora al plan ETF en algunos periodos: +12 % en 22 años.
-   Pero en ventanas de 10 años **es una moneda al aire** (6 de 13, −0,8 % de media),
-   porque **los impuestos se comen la ventaja**: al vender el ETF en cada señal tributas
-   cada año, en lugar de dejar crecer el dinero sin pagar hasta el final.
-3. Sin impuestos, "ETF + turbo" ganaría claramente (466.843 € frente a 336.727 €).
-   Esa diferencia la paga sobre todo el diferimiento fiscal del plan ETF.
-4. **Para un inversor en España con aportaciones periódicas, lo racional es que el
-   núcleo sea el plan ETF.** El bot tiene sentido como parte pequeña, para aprender y
-   operar, no como sustituto.
+1. **Ninguna estrategia activa gana de forma fiable a aportar cada mes a un indexado.**
+2. El bot solo pierde claramente: el dinero está parado el ~92 % del tiempo.
+3. "ETF + turbo" es una moneda al aire tras impuestos.
+4. "Fondo + tendencia" gana algo menos (−9 % de media en 10 años), pero **reduce la
+   peor caída del −51 % al −21 %**. Si lo que te importa es no ver tu dinero a la
+   mitad en una crisis, es la opción más interesante.
+5. Para un inversor en España con aportaciones periódicas: **la base debe ser un
+   fondo indexado** (mejor que un ETF, por los traspasos sin impuestos).
 
-Limitaciones: en España tampoco se pueden compensar pérdidas si recompras el mismo
-valor en menos de 2 meses (regla antiaplicación), y eso no está modelado, así que
-perjudicaría aún más a las opciones activas. El interés de la liquidez se simplifica
-a un 2 % fijo. El certificado factor se simula sin dividendos (supuesto conservador).
+### ¿Trade Republic o MyInvestor?
+
+| Para… | Mejor opción | Por qué |
+|---|---|---|
+| Aportar cada mes al S&P 500 / MSCI World | **MyInvestor (fondo indexado)** | Fondos sin comisión de compra ni custodia y **traspasables sin pagar impuestos**: puedes cambiar de fondo o reequilibrar sin tocar Hacienda. Un ETF siempre tributa al vender. |
+| Estrategia de tendencia (fondo ↔ monetario) | **MyInvestor** | Sólo es viable con fondos por los traspasos; mejor con fondos de la misma gestora (traspaso *switch*, más rápido). |
+| El bot de swing x3 | **Trade Republic** | Tiene certificados factor / knock-outs, comisión fija de 1 € y horario hasta las 23:00. En MyInvestor no encontré productos apalancados y los ETFs cuestan 0,12 % por operación (mín. 1 €). |
+| Liquidez | Cualquiera que la remunere | — |
+
+Limitaciones: la regla española de los 2 meses (no compensar pérdidas si recompras
+el mismo valor) no está modelada y perjudicaría aún más a las opciones activas.
+Los tipos del euro por año son aproximados. Los traspasos pueden tardar más de 3
+sesiones entre gestoras distintas (8-15 días naturales según usuarios) y algunas
+gestoras limitan los traspasos frecuentes. El certificado factor se simula sin
+dividendos (supuesto conservador).
 
 ---
 
@@ -275,7 +291,7 @@ swingbot/
                  intradía con gaps, costes, financiación, liquidación, métricas
   scanner.py     señales del día
   report.py      rejilla de robustez + validación fuera de muestra
-  compare.py     bot frente a plan ETF periódico (aportaciones, impuestos, gráfico)
+  compare.py     bot frente a plan ETF/fondo periódico y tendencia con traspasos (impuestos, gráfico)
   config.py      índices, instrumentos, brókers (TR / DEGIRO), productos y parámetros
 tests/           tests del motor (apalancamiento, TP/SL, gaps)
 ```

@@ -112,7 +112,7 @@ def main(argv=None):
               f" ({'con' if not a.no_taxes else 'sin'} impuestos)\n")
         print(cmp.fmt_summary(cmp.summarize(paths)))
         roll = cmp.rolling_windows(years=10, **kw)
-        etf = roll["Plan ETF periódico"]
+        etf = roll["Plan ETF/fondo periódico"]
         print("\n## Ventanas de 10 años: veces que gana al plan ETF")
         for col in roll.columns[3:]:
             print(f"  {col:26} {(roll[col] > etf).sum()}/{len(roll)}  "
@@ -121,7 +121,7 @@ def main(argv=None):
             Path(a.out).mkdir(exist_ok=True)
             f = cmp.plot(paths, roll, f"{a.out}/comparacion.png",
                          f"{cmp._eur(a.initial)} + {cmp._eur(a.monthly)}/mes en el S&P 500 desde "
-                         f"{a.start[:4]} (en €, con costes de Trade Republic e impuestos)")
+                         f"{a.start[:4]} (en €, con costes e impuestos)")
             print(f"\nGráfico: {f}")
 
     elif a.cmd == "report":

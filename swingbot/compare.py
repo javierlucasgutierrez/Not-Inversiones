@@ -30,6 +30,25 @@ from .strategies import get
 ETF_TR_SYMBOL = "SPY"   # proxy de un ETF UCITS del S&P 500 con dividendos (TER similar)
 ETF_SPREAD = 0.0005     # horquilla al vender/comprar el ETF en el modo turbo
 
+# Tipo del euro a corto plazo, media anual aproximada (EONIA / €STR). Es una
+# aproximación para remunerar la liquidez y el fondo monetario; no son datos oficiales.
+EUR_SHORT_RATE = {
+    2003: 0.023, 2004: 0.021, 2005: 0.021, 2006: 0.028, 2007: 0.039, 2008: 0.039,
+    2009: 0.007, 2010: 0.004, 2011: 0.009, 2012: 0.002, 2013: 0.001, 2014: 0.001,
+    2015: -0.001, 2016: -0.003, 2017: -0.0035, 2018: -0.0036, 2019: -0.0039,
+    2020: -0.0046, 2021: -0.0057, 2022: 0.000, 2023: 0.032, 2024: 0.036, 2025: 0.022,
+    2026: 0.019,
+}
+MONETARY_FEE = 0.0015       # comisión aproximada de un fondo monetario barato
+SWITCH_LAG = 3              # sesiones que tarda en ejecutarse un traspaso switch
+
+
+def eur_cash_daily(dates: pd.DatetimeIndex, fee: float = MONETARY_FEE) -> pd.Series:
+    """Rentabilidad diaria aproximada de la liquidez / fondo monetario en €."""
+    yr = pd.Series(dates.year, index=dates).map(EUR_SHORT_RATE).fillna(0.02)
+    return (yr - fee) / 252
+
+
 # Escala del ahorro en España (IRPF, base del ahorro). Comprobar cada año.
 TAX_BRACKETS_ES = [(6_000, 0.19), (50_000, 0.21), (200_000, 0.23), (300_000, 0.27),
                    (float("inf"), 0.28)]
@@ -137,7 +156,7 @@ def xirr(flows) -> float:
 
 def build_paths(start="2004-01-01", end=None, initial=1_000.0, monthly=200.0,
                 strategy="pullback", leverage=3, product="factor", broker="trade_republic",
-                cash_rate=0.02, satellite=0.2, symbol="^GSPC", taxes=True) -> list[Path]:
+                satellite=0.2, symbol="^GSPC", taxes=True, funds=True) -> list[Path]:
     fx = data.load(config.FX_SYMBOL, start="2003-12-01")["Close"]
     etf = data.load(ETF_TR_SYMBOL, start="1995-01-01")["Close"]
     idx_df = add_indicators(data.load(symbol, start="1995-01-01"))
@@ -168,15 +187,16 @@ def build_paths(start="2004-01-01", end=None, initial=1_000.0, monthly=200.0,
         events.loc[tr.exit_date] += 1
     flat = ~in_pos
 
-    r_cash = r_bot + flat * (cash_rate / 252)
+    # Liquidez remunerada (cuenta remunerada / monetario) con tipos históricos del euro.
+    r_cash = r_bot + flat * eur_cash_daily(dates, fee=0.0)
     # Turbo: ETF cuando no hay operación; se paga la horquilla del ETF al salir y volver.
     r_turbo = r_bot + flat * r_etf - (events > 0) * ETF_SPREAD
 
     fin, ann = ("final", "annual") if taxes else (None, None)
     paths = [
-        _simulate("Plan ETF periódico", r_etf, dates, initial, monthly, taxes=fin),
+        _simulate("Plan ETF/fondo periódico", r_etf, dates, initial, monthly, taxes=fin),
         _simulate(f"Bot solo (x{leverage:g})", r_bot, dates, initial, monthly, events, fee, ann),
-        _simulate(f"Bot + liquidez al {cash_rate:.0%}", r_cash, dates, initial, monthly, events,
+        _simulate("Bot + liquidez remunerada", r_cash, dates, initial, monthly, events,
                   fee, ann),
         # Al vender el ETF para entrar en el turbo se realizan sus plusvalías: tributa cada año.
         _simulate("ETF + turbo en señales", r_turbo, dates, initial, monthly, events, 2 * fee, ann),
@@ -193,7 +213,26 @@ def build_paths(start="2004-01-01", end=None, initial=1_000.0, monthly=200.0,
                       core.invested + sat.invested,
                       (1 + (w * r_etf + satellite * r_cash)).cumprod(), mix_flows,
                       core.taxes_paid + sat.taxes_paid))
+    if funds:
+        paths.append(_trend_fund_path(idx_df, r_etf, dates, initial, monthly, fin))
     return paths
+
+
+def _trend_fund_path(idx_df, r_etf, dates, initial, monthly, taxes) -> Path:
+    """Fondo indexado S&P 500 <-> fondo monetario por traspasos (sin impuestos).
+
+    Regla de tendencia mensual (Faber, 2007): el último día de cada mes, si el
+    S&P 500 cierra por encima de su media de 200 sesiones se está en el fondo
+    indexado; si no, en el monetario. El traspaso tarda SWITCH_LAG sesiones.
+    """
+    month_end = idx_df.index.to_series().groupby(idx_df.index.to_period("M")).transform("max")
+    is_eom = idx_df.index == month_end.values
+    above = (idx_df["Close"] > idx_df["sma200"]).where(is_eom)
+    target = above.ffill().fillna(True).astype(float)
+    invested = target.shift(SWITCH_LAG).fillna(1.0)
+    r = invested * r_etf + (1 - invested) * eur_cash_daily(dates)
+    return _simulate("Fondo + tendencia (traspasos)", r, dates, initial, monthly,
+                     taxes=taxes)
 
 
 def summarize(paths: list[Path]) -> pd.DataFrame:
@@ -290,7 +329,7 @@ def plot(paths: list[Path], rolling: pd.DataFrame | None, out: str, title: str) 
 
     if rolling is not None:
         ax = axes[1]
-        etf = rolling["Plan ETF periódico"]
+        etf = rolling["Plan ETF/fondo periódico"]
         cols = [c for c in rolling.columns[3:] if not c.startswith("Bot solo")]
         n = len(cols)
         w = 0.8 / n
@@ -318,7 +357,7 @@ def plot(paths: list[Path], rolling: pd.DataFrame | None, out: str, title: str) 
         ax.spines["bottom"].set_color(_GRID)
         ax.tick_params(colors=_INK2, length=0)
     fig.tight_layout()
-    fig.subplots_adjust(right=0.74, hspace=0.32)
+    fig.subplots_adjust(right=0.70, hspace=0.32)
     fig.savefig(out, dpi=150, facecolor=_SURF)
     plt.close(fig)
     return out
