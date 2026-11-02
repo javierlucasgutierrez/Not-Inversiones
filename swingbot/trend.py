@@ -78,6 +78,16 @@ def format_status(st: dict, leverage: float, out: str = "x1") -> str:
               "(las aportaciones nuevas, también al x3)."
               if st["inside"] else
               f"Vender todo el producto apalancado y {refugio}.")
+    today_inside = st["close"] > st["sma200"]
+    if today_inside != st["inside"]:
+        aviso = (f"  ⚠️ AVISO: hoy el S&P 500 está {'POR ENCIMA' if today_inside else 'POR DEBAJO'} "
+                 f"de la media. NO actúes todavía: si sigue así el {st['next_check']:%d/%m/%Y}, "
+                 f"tocará {'volver al x3' if today_inside else 'pasar a x1'}.")
+    elif abs(st["dist"]) < 0.02:
+        aviso = (f"  👀 Vigilancia: está a sólo {st['dist']:+.1%} de la media; un cambio de señal "
+                 "es posible en las próximas semanas.")
+    else:
+        aviso = "  Sin novedades: la señal de hoy coincide con la de la última revisión."
     return "\n".join([
         f"Estrategia de tendencia mensual (S&P 500, x{leverage:g})",
         f"  Última revisión ({st['check_date']:%d/%m/%Y}): cierre {st['check_close']:,.2f} vs "
@@ -87,4 +97,7 @@ def format_status(st: dict, leverage: float, out: str = "x1") -> str:
         f"{st['dist']:+.1%} respecto a la media de 200 sesiones",
         f"  Próxima revisión: último día hábil del mes, {st['next_check']:%d/%m/%Y} "
         "(mirar hacia las 21:45, hora de España; confirmar festivos de EE.UU.)",
-    ])
+        aviso,
+        ("  👉 HOY ES DÍA DE REVISIÓN: aplica la señal de hoy antes del cierre."
+         if st["date"].normalize() == st["next_check"] or st["check_date"] == st["date"] else ""),
+    ]).rstrip()

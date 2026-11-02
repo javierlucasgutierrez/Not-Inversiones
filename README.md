@@ -306,6 +306,19 @@ python -m swingbot tendencia --backtest  # señal + histórico
 | Ventanas 10 años en $, 1994+ (incluye puntocom) | — | gana 22/23 | **gana 23/23 (peor +13 %)** |
 | Peor caída | −51/−55 % | −60/−61 % | **−56/−66 %** |
 
+**¿Y si se revisa cada día?** Probado (x3 → x1, 23 ventanas de 10 años, 1994-2025):
+
+| Cuándo se actúa | Gana a la pasiva | Media frente a la pasiva | Cambios/año |
+|---|---|---|---|
+| **Fin de mes** | **23/23** | **+61 %** | 1,1 |
+| Diario | 17/23 | +24 % | 7,2 |
+| Diario con margen ±1 % | 21/23 | +35 % | 3,0 |
+| Diario con margen ±2 % | 21/23 | +44 % | 1,8 |
+| Diario con 3 días de confirmación | 20/23 | +35 % | 2,6 |
+
+Actuar cada día genera falsas alarmas: sales en bajones cortos y te pierdes el rebote.
+Por eso el bot **vigila a diario y avisa**, pero **sólo se actúa el último día del mes**.
+
 Riesgos: caídas de más del 60 % en algún momento; el pasado no garantiza el futuro
 (1994-2026 ha sido un periodo muy bueno para la bolsa de EE.UU.); los tipos de
 financiación por año son aproximados; se tributa en cada cambio DENTRO/FUERA.
