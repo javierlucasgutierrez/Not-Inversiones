@@ -113,3 +113,10 @@ def test_eur_conversion():
     fx = pd.Series([1.0, 1.0, 1.1, 1.1], index=df.index)  # el dólar se deprecia un 10 %
     t = bt.run(df, _one_trade_strategy(1, 1), bt.BTConfig(leverage=1, **ZERO_COST), fx=fx).trades.iloc[0]
     assert t["ret"] == pytest.approx(1.10 / 1.10 - 1)
+
+
+def test_tax_es_brackets():
+    from swingbot.compare import tax_es
+    assert tax_es(0) == 0
+    assert tax_es(6_000) == pytest.approx(1_140)
+    assert tax_es(10_000) == pytest.approx(1_140 + 4_000 * 0.21)

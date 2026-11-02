@@ -126,6 +126,9 @@ python -m swingbot backtest ^GSPC rsi2 --mode cfd --leverage 5 --entry next_open
 # Informe completo de robustez (regenera reports/)
 python -m swingbot report
 
+# Bot frente a aportar periódicamente a un ETF (con impuestos) + gráfico
+python -m swingbot compare --plot --initial 1000 --monthly 200
+
 # Tests del motor
 python -m pytest -q
 ```
@@ -210,7 +213,58 @@ Conclusiones para Trade Republic:
 
 ---
 
-## 6. Estructura
+## 6. ¿Gana más que aportar periódicamente a un ETF?
+
+`python -m swingbot compare --plot` simula **las mismas aportaciones** (1.000 € al
+principio + 200 €/mes) en cinco opciones. Todo en euros, con costes de Trade Republic
+e **impuestos españoles** (escala del ahorro 19-28 %). El plan ETF incluye dividendos
+y paga impuestos sólo al vender al final; el bot paga cada año porque vende en cada
+operación. Puedes cambiar las cantidades: `--initial 5000 --monthly 300 --start 2010`.
+
+![Comparación](reports/comparacion.png)
+
+**2004-2026 (1.000 € + 200 €/mes = 55.600 € aportados):**
+
+| Opción | Valor final neto | Impuestos pagados | TIR anual | Peor caída |
+|---|---|---|---|---|
+| Plan ETF periódico | 269.943 € | 66.784 € | +11,9 % | −51 % |
+| Bot solo x3 (liquidez sin remunerar) | 133.908 € | 19.499 € | +6,9 % | −29 % |
+| Bot + liquidez al 2 % | 165.383 € | 27.595 € | +8,5 % | −26 % |
+| **ETF + turbo en señales** | **303.221 €** | 65.745 € | **+12,7 %** | −51 % |
+| 80 % ETF / 20 % bot | 250.414 € | 56.746 € | +11,4 % | −42 % |
+
+**Repetido en todas las ventanas de 10 años (2004-13 … 2016-25):**
+
+| Opción | Gana al plan ETF | Diferencia media |
+|---|---|---|
+| Bot solo / bot + liquidez | 1 de 13 | −32 % / −26 % |
+| ETF + turbo en señales | 6 de 13 | −0,8 % |
+| 80 % ETF / 20 % bot | 1 de 13 | −5,5 % |
+
+Conclusiones:
+
+1. **El bot solo NO gana a aportar periódicamente.** Tiene el dinero parado el ~92 %
+   del tiempo y la bolsa sube la mayoría de los días. Sólo ganó en la década que
+   empieza con la crisis de 2008, porque se cayó mucho menos.
+2. **"ETF + turbo"** (tener siempre el ETF y cambiarlo por el x3 sólo cuando hay señal)
+   es la única opción que mejora al plan ETF en algunos periodos: +12 % en 22 años.
+   Pero en ventanas de 10 años **es una moneda al aire** (6 de 13, −0,8 % de media),
+   porque **los impuestos se comen la ventaja**: al vender el ETF en cada señal tributas
+   cada año, en lugar de dejar crecer el dinero sin pagar hasta el final.
+3. Sin impuestos, "ETF + turbo" ganaría claramente (466.843 € frente a 336.727 €).
+   Esa diferencia la paga sobre todo el diferimiento fiscal del plan ETF.
+4. **Para un inversor en España con aportaciones periódicas, lo racional es que el
+   núcleo sea el plan ETF.** El bot tiene sentido como parte pequeña, para aprender y
+   operar, no como sustituto.
+
+Limitaciones: en España tampoco se pueden compensar pérdidas si recompras el mismo
+valor en menos de 2 meses (regla antiaplicación), y eso no está modelado, así que
+perjudicaría aún más a las opciones activas. El interés de la liquidez se simplifica
+a un 2 % fijo. El certificado factor se simula sin dividendos (supuesto conservador).
+
+---
+
+## 7. Estructura
 
 ```
 swingbot/
@@ -221,6 +275,7 @@ swingbot/
                  intradía con gaps, costes, financiación, liquidación, métricas
   scanner.py     señales del día
   report.py      rejilla de robustez + validación fuera de muestra
+  compare.py     bot frente a plan ETF periódico (aportaciones, impuestos, gráfico)
   config.py      índices, instrumentos, brókers (TR / DEGIRO), productos y parámetros
 tests/           tests del motor (apalancamiento, TP/SL, gaps)
 ```
@@ -229,7 +284,7 @@ Supuestos conservadores del motor: si en un mismo día se tocan TP y stop se
 asume el stop; los gaps de apertura se ejecutan en la apertura (el stop no
 protege de un gap); las señales sólo usan datos hasta el cierre del día.
 
-## 7. Próximos pasos posibles
+## 8. Próximos pasos posibles
 
 - Avisos automáticos (Telegram / email) con el escáner programado cada día.
 - Stop dinámico por volatilidad (ajustado al Nasdaq).

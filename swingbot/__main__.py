@@ -56,6 +56,16 @@ def main(argv=None):
     br.add_argument("--broker", choices=list(config.BROKERS), default="trade_republic")
     br.add_argument("--out", default="reports")
 
+    c = sub.add_parser("compare", help="Bot frente a aportar periódicamente a un ETF")
+    c.add_argument("--initial", type=float, default=1_000)
+    c.add_argument("--monthly", type=float, default=200)
+    c.add_argument("--start", default="2004-01-01")
+    c.add_argument("--leverage", type=float, default=3)
+    c.add_argument("--strategy", choices=list(STRATEGIES), default="pullback")
+    c.add_argument("--no-taxes", action="store_true", help="Ignorar impuestos")
+    c.add_argument("--plot", action="store_true", help="Guardar gráfico en reports/")
+    c.add_argument("--out", default="reports")
+
     r = sub.add_parser("report", help="Informe de robustez completo")
     r.add_argument("--symbols", nargs="*")
     r.add_argument("--out", default="reports")
@@ -92,6 +102,27 @@ def main(argv=None):
         tab.to_csv(out / f"broker_{a.broker}.csv", index=False)
         print(f"## {config.BROKERS[a.broker]['name']} — x3/x5, TP5 % SL10 %, resultado en €, 2004-hoy\n")
         print(report.fmt(tab))
+
+    elif a.cmd == "compare":
+        from . import compare as cmp
+        kw = dict(initial=a.initial, monthly=a.monthly, leverage=a.leverage,
+                  strategy=a.strategy, taxes=not a.no_taxes)
+        paths = cmp.build_paths(start=a.start, **kw)
+        print(f"## {a.initial:,.0f} € iniciales + {a.monthly:,.0f} €/mes desde {a.start[:4]}"
+              f" ({'con' if not a.no_taxes else 'sin'} impuestos)\n")
+        print(cmp.fmt_summary(cmp.summarize(paths)))
+        roll = cmp.rolling_windows(years=10, **kw)
+        etf = roll["Plan ETF periódico"]
+        print("\n## Ventanas de 10 años: veces que gana al plan ETF")
+        for col in roll.columns[3:]:
+            print(f"  {col:26} {(roll[col] > etf).sum()}/{len(roll)}  "
+                  f"(diferencia media {(roll[col] / etf - 1).mean():+.1%})")
+        if a.plot:
+            Path(a.out).mkdir(exist_ok=True)
+            f = cmp.plot(paths, roll, f"{a.out}/comparacion.png",
+                         f"{cmp._eur(a.initial)} + {cmp._eur(a.monthly)}/mes en el S&P 500 desde "
+                         f"{a.start[:4]} (en €, con costes de Trade Republic e impuestos)")
+            print(f"\nGráfico: {f}")
 
     elif a.cmd == "report":
         out = Path(a.out)
