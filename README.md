@@ -325,6 +325,25 @@ financiación por año son aproximados; se tributa en cada cambio DENTRO/FUERA.
 
 ---
 
+### Mejoras probadas que NO superan a la regla actual (noviembre 2026)
+
+Probadas con 50 $/mes, x3 → x1, eligiendo con 1994-2009 y comprobando con 2010-2026,
+y en 23 ventanas de 10 años:
+
+| Variante | Frente a la regla actual (10 años) |
+|---|---|
+| Cruce dorado (media 200 + media 50 > media 200) | gana 6/23, −3 % de media |
+| Impulso 12 meses > 0 | gana 0/23, −19 % |
+| Media 200 y/o impulso | gana 4/23, −7 % a −12 % |
+| Filtro de volatilidad (vol 20 o 60 días < 20 %) | gana 3-6/23, −3 % a −10 % |
+| Apalancamiento por escalones de volatilidad (x3/x2/x1) | gana 4-5/23, −8 % a −10 % |
+| Revisar en otro día del mes, semanal o diario | peor en 1994-2009 |
+| Salida de emergencia (x % bajo la media o desde máximo) | igual o peor |
+| Comprar la aportación mensual en una bajada | diferencia < 1 % |
+
+Algunos filtros reducen la peor caída en 2010-2026 (−50 % frente a −58 %), pero
+rinden menos en 1994-2009. Se mantiene la regla simple.
+
 ### Panel "Cartera x3 Tendencia"
 
 Panel privado en claude.ai con la señal, el gráfico del S&P 500 frente a su media,
