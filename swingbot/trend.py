@@ -70,6 +70,10 @@ def backtest(leverage: float = 3, start: str = "2004-01-01", end=None, initial=5
                        switches, orders * fee, "annual")
 
 
+def _today_madrid() -> pd.Timestamp:
+    return pd.Timestamp.now(tz="Europe/Madrid").normalize().tz_localize(None)
+
+
 def format_status(st: dict, leverage: float, out: str = "x1") -> str:
     estado = "DENTRO ✅" if st["inside"] else "FUERA ⛔"
     refugio = ("pasar ese dinero a un ETF normal (x1) del S&P 500" if out == "x1"
@@ -99,5 +103,5 @@ def format_status(st: dict, leverage: float, out: str = "x1") -> str:
         "(mirar hacia las 21:45, hora de España; confirmar festivos de EE.UU.)",
         aviso,
         ("  👉 HOY ES DÍA DE REVISIÓN: aplica la señal de hoy antes del cierre."
-         if st["date"].normalize() == st["next_check"] or st["check_date"] == st["date"] else ""),
+         if _today_madrid() == st["next_check"] else ""),
     ]).rstrip()
