@@ -56,6 +56,12 @@ def main(argv=None):
     br.add_argument("--broker", choices=list(config.BROKERS), default="trade_republic")
     br.add_argument("--out", default="reports")
 
+    t = sub.add_parser("tendencia", help="Señal mensual de la estrategia x3 con tendencia")
+    t.add_argument("--leverage", type=float, default=3)
+    t.add_argument("--backtest", action="store_true", help="Mostrar también el histórico")
+    t.add_argument("--initial", type=float, default=50)
+    t.add_argument("--monthly", type=float, default=50)
+
     c = sub.add_parser("compare", help="Bot frente a aportar periódicamente a un ETF")
     c.add_argument("--initial", type=float, default=1_000)
     c.add_argument("--monthly", type=float, default=200)
@@ -102,6 +108,20 @@ def main(argv=None):
         tab.to_csv(out / f"broker_{a.broker}.csv", index=False)
         print(f"## {config.BROKERS[a.broker]['name']} — x3/x5, TP5 % SL10 %, resultado en €, 2004-hoy\n")
         print(report.fmt(tab))
+
+    elif a.cmd == "tendencia":
+        from . import trend, compare as cmp
+        print(trend.format_status(trend.status(), a.leverage))
+        if a.backtest:
+            print(f"\nHistórico ({cmp._eur(a.initial)} + {cmp._eur(a.monthly)}/mes, en €, "
+                  "con costes e impuestos):")
+            for start in ("2004", "2016"):
+                for lev in (1, 2, a.leverage):
+                    p = trend.backtest(lev, f"{start}-01-01", initial=a.initial, monthly=a.monthly)
+                    dd = (p.twr / p.twr.cummax() - 1).min()
+                    print(f"  desde {start} x{lev:g} con tendencia: aportado "
+                          f"{cmp._eur(p.invested.iloc[-1])} -> {cmp._eur(p.value.iloc[-1])}  "
+                          f"TIR {cmp.xirr(p.flows):+.1%}  peor caída {dd:+.0%}")
 
     elif a.cmd == "compare":
         from . import compare as cmp
