@@ -1,28 +1,43 @@
 <meta name="dash-one-writer">
 <style>
-  .cx { display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); max-width: 72rem; margin-inline: auto; }
+  .cx { display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); max-width: 76rem; margin-inline: auto; }
   .cx-head { display: grid; gap: var(--cds-gap-sm); }
   .cx-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
-  .cx-take { margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg); max-width: 65ch; }
+  .cx-take { margin: 0; font-size: var(--cds-font-size-body); max-width: 65ch; }
   .cx-alert { margin: 0; font-size: var(--cds-font-size-body); color: var(--color-warn); max-width: 65ch; }
   .cx b { font-weight: 600; }
-  .cx-tiles { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
-  .cx-tile { display: grid; gap: var(--cds-gap-xs); align-content: start; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .cx-hero { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); }
+  .cx-tile, .cx-card { display: grid; gap: var(--cds-gap-sm); align-content: start; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
   .cx-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .02em; }
   .cx-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.15; }
   .cx-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
-  .cx-chip { display: inline-block; justify-self: start; font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-heading); font-weight: 600; letter-spacing: .04em; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-radius: var(--cds-radius); border: 1px solid var(--color-border-line); }
-  .cx-chip.is-in { color: var(--color-ok); border-color: var(--color-ok); }
-  .cx-chip.is-out { color: var(--color-bad); border-color: var(--color-bad); }
-  .cx-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); }
-  .cx-card { display: grid; gap: var(--cds-gap-sm); align-content: start; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .cx-light { display: flex; align-items: center; gap: var(--cds-gap-md); }
+  .cx-lamp { width: 3.25rem; height: 3.25rem; border-radius: 50%; border: 3px solid var(--color-border-line); flex: none; }
+  .cx-lamp.is-in { background: var(--color-ok); border-color: var(--color-ok); box-shadow: 0 0 1.2rem var(--color-ok); }
+  .cx-lamp.is-out { background: var(--color-bad); border-color: var(--color-bad); box-shadow: 0 0 1.2rem var(--color-bad); }
+  @media (prefers-reduced-motion: no-preference) { .cx-lamp.is-in, .cx-lamp.is-out { animation: cx-pulse 2.4s var(--cds-ease-out) infinite; } }
+  @keyframes cx-pulse { 50% { box-shadow: 0 0 .3rem transparent; } }
+  .cx-state { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); line-height: 1.1; }
+  .cx-state.is-in { color: var(--color-ok); }
+  .cx-state.is-out { color: var(--color-bad); }
+  .cx-gauge { min-height: 92px; }
+  .cx-gauge svg, .cx-chart svg { display: block; overflow: visible; }
   .cx-h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
-  .cx-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 70ch; }
-  .cx-chart { position: relative; min-height: 280px; }
-  .cx-chart svg { display: block; overflow: visible; }
-  .cx-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .cx-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 72ch; }
+  .cx-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .cx-key { display: inline-flex; align-items: center; gap: .35rem; }
+  .cx-sw { display: inline-block; width: .9rem; height: .2rem; border-radius: 2px; }
+  .cx-sw.k-up { background: var(--cx-up); height: .7rem; width: .45rem; }
+  .cx-sw.k-down { background: var(--cx-down); height: .7rem; width: .45rem; }
+  .cx-sw.k-200 { background: var(--cx-s200); }
+  .cx-sw.k-5 { background: var(--cx-s5); }
+  .cx-tri { width: 0; height: 0; border-left: .35rem solid transparent; border-right: .35rem solid transparent; border-bottom: .6rem solid var(--cx-sig); }
+  .cx-chart { position: relative; min-height: 470px; }
+  .cx-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; font-variant-numeric: tabular-nums; display: grid; gap: 2px; }
   .cx-tip-date { color: var(--cds-text-secondary); }
-  .cx-sw { display: inline-block; width: .6rem; height: .6rem; border-radius: 2px; margin-right: .35rem; vertical-align: baseline; }
+  .cx-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); }
+  .cx-levels { display: grid; gap: var(--cds-gap-sm); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cx-levels .cx-big { font-size: var(--cds-font-size-heading); }
   .cx-tablewrap { overflow-x: auto; }
   .cx-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-body); font-variant-numeric: tabular-nums; }
   .cx-table th { text-align: left; font-size: var(--cds-font-size-caption); font-weight: 500; color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
@@ -30,11 +45,16 @@
   .cx-table .num { text-align: right; }
   .cx-pos { color: var(--color-ok); }
   .cx-neg { color: var(--color-bad); }
-  .cx-done { color: var(--color-fg); }
   .cx-pend { color: var(--color-fg-muted); }
   .cx-mini { display: grid; gap: var(--cds-gap-sm); grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .cx-mini .cx-big { font-size: var(--cds-font-size-heading); font-family: var(--font-anthropic-serif); }
+  .cx-mini .cx-big { font-size: var(--cds-font-size-heading); }
+  .cx-guide { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+  .cx-pattern { display: grid; gap: var(--cds-gap-xs); align-content: start; }
+  .cx-pattern svg { width: 100%; max-width: 12rem; height: auto; }
+  .cx-pattern h3 { margin: 0; font-size: var(--cds-font-size-body); font-weight: 600; }
+  .cx-pattern p { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
   .cx-rules { margin: 0; padding-left: 1.2rem; display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-body); max-width: 70ch; }
+  .cx-chip { display: inline-block; font-size: var(--cds-font-size-caption); font-weight: 600; letter-spacing: .04em; padding: 2px var(--cds-pad-sm); border-radius: var(--cds-radius); border: 1px solid var(--color-warn); color: var(--color-warn); justify-self: start; }
   [data-dash-source-state=empty] { color: transparent; }
   [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 </style>
@@ -42,73 +62,126 @@
 <div class="cx">
   <header class="cx-head">
     <h1 class="cx-title">Cartera x3 Tendencia</h1>
-    <p class="cx-take" data-when="in">La señal está <b>DENTRO</b>: mantén el certificado factor Long x3 del S&amp;P 500 y no toques nada hasta la próxima revisión, el <b data-draw="prox-a" data-source="senal" data-field="proxima_revision">—</b>.</p>
-    <p class="cx-take" data-when="out" hidden>La señal está <b>FUERA</b>: el dinero va en un ETF normal (x1) del S&amp;P 500 hasta que la señal vuelva a DENTRO. Próxima revisión: <b data-draw="prox-b" data-source="senal" data-field="proxima_revision">—</b>.</p>
+    <p class="cx-take" data-when="in">Semáforo en verde: mantén el certificado factor Long x3 del S&amp;P 500 y no toques nada hasta la revisión del <b data-draw="prox-a" data-source="senal" data-field="proxima_revision">—</b>.</p>
+    <p class="cx-take" data-when="out" hidden>Semáforo en rojo: el dinero va en un ETF normal (x1) del S&amp;P 500 hasta que vuelva el verde. Próxima revisión: <b data-draw="prox-b" data-source="senal" data-field="proxima_revision">—</b>.</p>
     <p class="cx-alert" data-when="alert" hidden>Alerta temprana: hoy el S&amp;P 500 está al otro lado de su media. No actúes todavía; sólo cuenta el cierre del día de revisión.</p>
   </header>
 
-  <section class="cx-tiles" aria-label="Estado de la señal">
+  <section class="cx-hero" aria-label="Estado de hoy">
     <div class="cx-tile">
-      <span class="cx-label">Señal (última revisión)</span>
-      <span class="cx-chip" data-draw="estado" data-source="senal" data-field="estado">—</span>
-      <span class="cx-sub">Revisada el <span data-draw="rev" data-source="senal" data-field="revision_anterior">—</span></span>
+      <span class="cx-label">Semáforo de la tendencia</span>
+      <div class="cx-light">
+        <span class="cx-lamp" data-draw="lamp" data-source="senal" data-field="estado"></span>
+        <div>
+          <div class="cx-state" data-draw="estado" data-source="senal" data-field="estado">—</div>
+          <div class="cx-sub">Producto: <span data-draw="prod" data-source="senal" data-field="producto">—</span></div>
+        </div>
+      </div>
     </div>
     <div class="cx-tile">
-      <span class="cx-label">S&amp;P 500, último cierre</span>
-      <span class="cx-big" data-draw="cierre" data-source="senal" data-field="cierre">—</span>
-      <span class="cx-sub">Cierre del <span data-draw="fecha" data-source="senal" data-field="fecha">—</span></span>
+      <span class="cx-label">Cuenta atrás hasta la revisión</span>
+      <span class="cx-big" data-draw="countdown" data-source="senal" data-field="proxima_revision">—</span>
+      <span class="cx-sub">Revisión el <span data-draw="prox" data-source="senal" data-field="proxima_revision">—</span>, hacia las 21:45</span>
     </div>
     <div class="cx-tile">
-      <span class="cx-label">Distancia a la media de 200 sesiones</span>
-      <span class="cx-big" data-draw="dist" data-source="senal" data-field="distancia">—</span>
-      <span class="cx-sub">Media: <span data-draw="media" data-source="senal" data-field="media200">—</span></span>
-    </div>
-    <div class="cx-tile">
-      <span class="cx-label">Próxima revisión</span>
-      <span class="cx-big" data-draw="prox" data-source="senal" data-field="proxima_revision">—</span>
-      <span class="cx-sub">Producto: <span data-draw="prod" data-source="senal" data-field="producto">—</span></span>
+      <span class="cx-label">Termómetro: distancia a la media de 200 sesiones</span>
+      <div class="cx-gauge" data-draw="gauge" data-source="senal"></div>
     </div>
   </section>
 
-  <section class="cx-card" id="grafico">
-    <h2 class="cx-h2">S&amp;P 500 frente a su media de 200 sesiones</h2>
-    <p class="cx-note">Último año. Si el último día hábil del mes el índice cierra por encima de la línea discontinua, la señal es DENTRO (x3); si cierra por debajo, FUERA (x1).</p>
-    <div class="cx-chart" data-draw="chart" data-source="indice"></div>
+  <section class="cx-card" id="velas">
+    <h2 class="cx-h2">El mercado en velas</h2>
+    <p class="cx-note">S&amp;P 500, últimos 6 meses. Pasa el dedo o el ratón por una vela para ver sus datos. Las líneas de puntos son las revisiones de fin de mes.</p>
+    <div class="cx-legend">
+      <span class="cx-key"><span class="cx-sw k-up"></span>Vela alcista</span>
+      <span class="cx-key"><span class="cx-sw k-down"></span>Vela bajista</span>
+      <span class="cx-key"><span class="cx-sw k-200"></span>Media 200 (tendencia)</span>
+      <span class="cx-key"><span class="cx-sw k-5"></span>Media 5 (salida del turbo)</span>
+      <span class="cx-key"><span class="cx-tri"></span>Señal del turbo</span>
+    </div>
+    <div class="cx-chart" data-draw="candles" data-source="velas"></div>
   </section>
 
   <div class="cx-grid">
-    <section class="cx-card" id="calendario">
-      <h2 class="cx-h2">Calendario de revisiones</h2>
-      <p class="cx-note">Último día hábil de cada mes, hacia las 21:45 (hora de España). Sólo ese día se compra o se vende.</p>
-      <div class="cx-tablewrap">
-        <table class="cx-table" data-source="calendario" data-row-key="fecha">
-          <thead><tr><th data-field="fecha">Fecha</th><th data-field="estado">Revisión</th><th data-field="resultado">Señal</th><th class="num" data-field="cierre">Cierre S&amp;P 500</th></tr></thead>
-          <tbody data-draw="cal"></tbody>
-        </table>
+    <section class="cx-card" id="turbo">
+      <h2 class="cx-h2">Turbo x5</h2>
+      <span class="cx-chip">Modo práctica</span>
+      <p class="cx-note">Última señal de corto plazo y sus niveles. No se opera con dinero hasta medir el deslizamiento real de los stops en Trade Republic.</p>
+      <div class="cx-sub">Señal del <b data-draw="t-fecha" data-source="turbo" data-field="fecha">—</b> · tipo <b data-draw="t-tipo" data-source="turbo" data-field="tipo">—</b></div>
+      <div class="cx-levels">
+        <div class="cx-tile"><span class="cx-label">Entrada (índice)</span><span class="cx-big" data-draw="t-in" data-source="turbo" data-field="entrada">—</span></div>
+        <div class="cx-tile"><span class="cx-label">Objetivo +10 %</span><span class="cx-big cx-pos" data-draw="t-tp" data-source="turbo" data-field="objetivo">—</span></div>
+        <div class="cx-tile"><span class="cx-label">Stop −3 %</span><span class="cx-big cx-neg" data-draw="t-sl" data-source="turbo" data-field="stop">—</span></div>
       </div>
+      <p class="cx-note">Señales en los últimos 6 meses: <b data-draw="t-n" data-source="turbo" data-field="senales">—</b>. Sale también si una vela cierra por encima de la media 5, o a los 10 días.</p>
     </section>
 
-    <section class="cx-card" id="operaciones">
-      <h2 class="cx-h2">Mis operaciones</h2>
-      <p class="cx-note">Lo que compras y vendes en Trade Republic. Cuéntamelo en el chat y lo apunto aquí.</p>
-      <div class="cx-mini">
-        <div class="cx-tile"><span class="cx-label">Aportado</span><span class="cx-big" data-draw="aportado" data-source="resumen" data-field="aportado">—</span></div>
-        <div class="cx-tile"><span class="cx-label">Comisiones</span><span class="cx-big" data-draw="comisiones" data-source="resumen" data-field="comisiones">—</span></div>
-        <div class="cx-tile"><span class="cx-label">Operaciones</span><span class="cx-big" data-draw="nops" data-source="resumen" data-field="operaciones">—</span></div>
-      </div>
-      <p class="cx-note" data-ops-empty hidden>Aún no hay operaciones. La primera será la compra de 50 € del certificado factor Long x3 sobre el S&amp;P 500.</p>
-      <div class="cx-tablewrap" data-ops-table hidden>
-        <table class="cx-table" data-source="operaciones" data-row-key="id">
-          <thead><tr><th data-field="fecha">Fecha</th><th data-field="accion">Acción</th><th data-field="producto">Producto</th><th class="num" data-field="importe">Importe</th><th class="num" data-field="comision">Comisión</th></tr></thead>
-          <tbody data-draw="ops"></tbody>
+    <section class="cx-card" id="calendario">
+      <h2 class="cx-h2">Calendario de revisiones</h2>
+      <p class="cx-note">Último día hábil de cada mes. Sólo ese día se cambia entre x3 y x1.</p>
+      <div class="cx-tablewrap">
+        <table class="cx-table" data-source="calendario" data-row-key="fecha">
+          <thead><tr><th data-field="fecha">Fecha</th><th data-field="estado">Revisión</th><th data-field="resultado">Señal</th><th class="num" data-field="cierre">Cierre</th></tr></thead>
+          <tbody data-draw="cal"></tbody>
         </table>
       </div>
     </section>
   </div>
 
+  <section class="cx-card" id="operaciones">
+    <h2 class="cx-h2">Mis operaciones</h2>
+    <p class="cx-note">Lo que compras y vendes en Trade Republic. Cuéntamelo en el chat y lo apunto aquí.</p>
+    <div class="cx-mini">
+      <div class="cx-tile"><span class="cx-label">Aportado</span><span class="cx-big" data-draw="aportado" data-source="resumen" data-field="aportado">—</span></div>
+      <div class="cx-tile"><span class="cx-label">Comisiones</span><span class="cx-big" data-draw="comisiones" data-source="resumen" data-field="comisiones">—</span></div>
+      <div class="cx-tile"><span class="cx-label">Pendientes</span><span class="cx-big" data-draw="pend" data-source="resumen" data-field="pendientes">—</span></div>
+    </div>
+    <div class="cx-tablewrap">
+      <table class="cx-table" data-source="operaciones" data-row-key="id">
+        <thead><tr><th data-field="fecha">Fecha</th><th data-field="accion">Acción</th><th data-field="producto">Producto</th><th class="num" data-field="importe">Importe</th><th class="num" data-field="comision">Comisión</th><th data-field="estado">Estado</th></tr></thead>
+        <tbody data-draw="ops"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="cx-card" id="guia">
+    <h2 class="cx-h2">Cómo leer las señales en las velas</h2>
+    <p class="cx-note">Todas exigen que las velas estén por encima de la media de 200. La entrada se hace al cierre de la vela de la señal.</p>
+    <div class="cx-guide">
+      <div class="cx-pattern">
+        <svg viewBox="0 0 120 70" aria-hidden="true">
+          <line x1="22" y1="8" x2="22" y2="34" class="g-down"/><rect x="16" y="12" width="12" height="18" class="g-down-f"/>
+          <line x1="50" y1="18" x2="50" y2="46" class="g-down"/><rect x="44" y="22" width="12" height="18" class="g-down-f"/>
+          <line x1="78" y1="28" x2="78" y2="58" class="g-down"/><rect x="72" y="32" width="12" height="20" class="g-down-f"/>
+          <polygon points="98,66 104,56 110,66" class="g-sig"/>
+        </svg>
+        <h3>Pullback</h3>
+        <p>Tres velas seguidas cerrando más abajo que la anterior. Un descanso dentro de la subida.</p>
+      </div>
+      <div class="cx-pattern">
+        <svg viewBox="0 0 120 70" aria-hidden="true">
+          <line x1="30" y1="10" x2="30" y2="30" class="g-up"/><rect x="24" y="14" width="12" height="12" class="g-up-f"/>
+          <line x1="62" y1="14" x2="62" y2="56" class="g-down"/><rect x="56" y="18" width="12" height="34" class="g-down-f"/>
+          <polyline points="8,40 30,34 62,64 100,66" class="g-rsi"/>
+          <line x1="4" y1="62" x2="116" y2="62" class="g-thr"/>
+        </svg>
+        <h3>RSI(2) por debajo de 10</h3>
+        <p>Una o dos velas rojas fuertes hunden el RSI(2) en la zona roja: caída exagerada a muy corto plazo.</p>
+      </div>
+      <div class="cx-pattern">
+        <svg viewBox="0 0 120 70" aria-hidden="true">
+          <line x1="60" y1="6" x2="60" y2="58" class="g-down"/><rect x="53" y="10" width="14" height="46" class="g-down-f"/>
+          <line x1="40" y1="58" x2="80" y2="58" class="g-thr"/>
+        </svg>
+        <h3>IBS por debajo de 0,2</h3>
+        <p>La vela cierra pegada a su mínimo del día, casi sin mecha abajo. Al día siguiente suele rebotar.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="cx-card" id="expectativa">
     <h2 class="cx-h2">Qué esperar en un año</h2>
-    <p class="cx-note">Con 50 € al empezar y 50 € al mes (600 € en un año). Simulación de 382 años distintos del histórico desde 1994, antes de impuestos. La estrategia gana a la inversión pasiva en 6 de cada 10 años; su ventaja aparece con los años.</p>
+    <p class="cx-note">Con 50 € al empezar y 50 € al mes (600 € en un año). 382 años simulados desde 1994, antes de impuestos. Gana a la pasiva 6 de cada 10 años; la ventaja aparece con los años.</p>
     <div class="cx-tablewrap">
       <table class="cx-table" data-source="expectativa" data-row-key="escenario">
         <thead><tr><th data-field="escenario">Escenario</th><th class="num" data-field="pasiva">Pasiva x1</th><th class="num" data-field="bot">Estrategia x3</th><th class="num" data-field="extra">Diferencia</th></tr></thead>
@@ -121,8 +194,8 @@
     <h2 class="cx-h2">Las reglas</h2>
     <ol class="cx-rules">
       <li>El último día hábil del mes, mira si el S&amp;P 500 cierra por encima de su media de 200 sesiones.</li>
-      <li>Por encima: certificado factor Long x3 sobre el S&amp;P 500. Las aportaciones nuevas, también al x3.</li>
-      <li>Por debajo: vende el x3 y compra un ETF normal del S&amp;P 500. Las aportaciones nuevas, al ETF.</li>
+      <li>Por encima: certificado factor Long x3. Las aportaciones nuevas, también al x3.</li>
+      <li>Por debajo: vende el x3 y compra un ETF normal del S&amp;P 500. Las aportaciones, al ETF.</li>
       <li>Entre revisiones no se toca nada, aunque el mercado caiga.</li>
     </ol>
     <p class="cx-note">No es asesoramiento financiero. En el histórico hubo caídas de más del 60 % en algún momento, y el pasado no garantiza el futuro.</p>
@@ -130,60 +203,117 @@
 </div>
 
 <script>
+  const cxColors = () => {
+    const c = dash.colors || [];
+    return { up: c[2] || '#1baf7a', down: c[7] || '#e34948', s200: c[0] || '#2a78d6', s5: c[1] || '#eb6834', sig: c[6] || '#6250d6' };
+  };
   const nf = (d) => new Intl.NumberFormat('es-ES', {minimumFractionDigits: d, maximumFractionDigits: d});
   const fmtDate = (s) => s ? new Intl.DateTimeFormat('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC'}).format(new Date(s + 'T00:00:00Z')) : '';
+  const fmtShort = (s) => new Intl.DateTimeFormat('es-ES', {day: 'numeric', month: 'short', timeZone: 'UTC'}).format(new Date(s + 'T00:00:00Z'));
   const eur = (v, d = 2) => nf(d).format(Number(v)) + ' €';
-  const signedEur = (v) => (Number(v) > 0 ? '+' : '') + nf(0).format(Number(v)) + ' €';
   const one = (id) => { const d = dash.data(id); return d.status === 'ok' && d.data.length ? d.data[0] : null; };
-  const word = (name, id, f) => dash.draw(name, (el) => { const r = one(id); el.textContent = r ? f(r) : '—'; });
-
-  word('prox-a', 'senal', (r) => fmtDate(r.proxima_revision));
-  word('prox-b', 'senal', (r) => fmtDate(r.proxima_revision));
-  word('prox', 'senal', (r) => fmtDate(r.proxima_revision));
-  word('rev', 'senal', (r) => fmtDate(r.revision_anterior));
-  word('fecha', 'senal', (r) => fmtDate(r.fecha));
-  word('cierre', 'senal', (r) => nf(2).format(r.cierre));
-  word('media', 'senal', (r) => nf(2).format(r.media200));
-  word('prod', 'senal', (r) => r.producto);
-  dash.draw('dist', (el) => {
-    const r = one('senal');
-    el.textContent = r ? (r.distancia > 0 ? '+' : '') + nf(1).format(r.distancia * 100) + ' %' : '—';
-    el.classList.toggle('cx-pos', !!r && r.distancia > 0);
-    el.classList.toggle('cx-neg', !!r && r.distancia <= 0);
-  });
-  dash.draw('estado', (el) => {
-    const r = one('senal');
-    el.textContent = r ? r.estado : '—';
-    el.classList.toggle('is-in', !!r && r.estado === 'DENTRO');
-    el.classList.toggle('is-out', !!r && r.estado === 'FUERA');
-  });
-
-  dash.calc('resumen', {
-    inputs: ['operaciones'],
-    title: 'Totales de mis operaciones',
-    description: 'Suma el dinero aportado en compras, las comisiones y el número de operaciones.',
-    fn: (operaciones) => [{
-      aportado: operaciones.filter((o) => o.accion === 'Compra').reduce((s, o) => s + Number(o.importe), 0),
-      comisiones: operaciones.reduce((s, o) => s + Number(o.comision || 0), 0),
-      operaciones: operaciones.length,
-    }],
-  });
-  word('aportado', 'resumen', (r) => eur(r.aportado));
-  word('comisiones', 'resumen', (r) => eur(r.comisiones));
-  word('nops', 'resumen', (r) => String(r.operaciones));
+  const word = (name, id, f) => dash.draw(name, (el) => { const x = one(id); el.textContent = x ? f(x) : '—'; });
 
   dash.onData(() => {
+    const k = cxColors();
+    document.querySelectorAll('.cx').forEach((root) => {
+      root.style.setProperty('--cx-up', k.up); root.style.setProperty('--cx-down', k.down);
+      root.style.setProperty('--cx-s200', k.s200); root.style.setProperty('--cx-s5', k.s5); root.style.setProperty('--cx-sig', k.sig);
+    });
+    document.querySelectorAll('.cx-pattern .g-down').forEach((e) => { e.style.stroke = k.down; e.style.strokeWidth = '2'; });
+    document.querySelectorAll('.cx-pattern .g-down-f').forEach((e) => { e.style.fill = k.down; e.style.rx = '2'; });
+    document.querySelectorAll('.cx-pattern .g-up').forEach((e) => { e.style.stroke = k.up; e.style.strokeWidth = '2'; });
+    document.querySelectorAll('.cx-pattern .g-up-f').forEach((e) => { e.style.fill = k.up; });
+    document.querySelectorAll('.cx-pattern .g-sig').forEach((e) => { e.style.fill = k.sig; });
+    document.querySelectorAll('.cx-pattern .g-rsi').forEach((e) => { e.style.stroke = k.sig; e.style.fill = 'none'; e.style.strokeWidth = '2'; });
+    document.querySelectorAll('.cx-pattern .g-thr').forEach((e) => { e.style.stroke = 'var(--cds-chart-reference)'; e.style.strokeDasharray = '4 3'; });
+
     const r = one('senal');
     document.querySelectorAll('[data-when]').forEach((e) => {
       const w = e.dataset.when;
       e.hidden = !r || (w === 'in' && r.estado !== 'DENTRO') || (w === 'out' && r.estado !== 'FUERA')
         || (w === 'alert' && r.estado_hoy === r.estado);
     });
-    const ops = dash.data('operaciones');
-    const empty = ops.status === 'ok' && ops.data.length === 0;
-    document.querySelectorAll('[data-ops-empty]').forEach((e) => { e.hidden = !empty; });
-    document.querySelectorAll('[data-ops-table]').forEach((e) => { e.hidden = empty; });
   });
+
+  word('prox-a', 'senal', (x) => fmtDate(x.proxima_revision));
+  word('prox-b', 'senal', (x) => fmtDate(x.proxima_revision));
+  word('prox', 'senal', (x) => fmtDate(x.proxima_revision));
+  word('prod', 'senal', (x) => x.producto);
+  dash.draw('estado', (el) => {
+    const x = one('senal');
+    el.textContent = x ? x.estado : '—';
+    el.classList.toggle('is-in', !!x && x.estado === 'DENTRO');
+    el.classList.toggle('is-out', !!x && x.estado === 'FUERA');
+  });
+  dash.draw('lamp', (el) => {
+    const x = one('senal');
+    el.classList.toggle('is-in', !!x && x.estado === 'DENTRO');
+    el.classList.toggle('is-out', !!x && x.estado === 'FUERA');
+  });
+  dash.draw('countdown', (el) => {
+    const x = one('senal');
+    if (!x) { el.textContent = '—'; return; }
+    const now = new Date();
+    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const days = Math.round((Date.parse(x.proxima_revision + 'T00:00:00Z') - today) / 86400000);
+    el.textContent = days > 1 ? `${days} días` : days === 1 ? 'Mañana' : days === 0 ? 'Hoy' : 'Pendiente de datos';
+  });
+
+  dash.draw('gauge', (el) => {
+    const x = one('senal');
+    el.replaceChildren();
+    if (!x) { el.textContent = '—'; return; }
+    const k = cxColors();
+    const W = Math.max(220, el.clientWidth || 300), H = 92, pad = 14, lim = 0.1;
+    const xs = d3.scaleLinear([-lim, lim], [pad, W - pad]).clamp(true);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+      .attr('role', 'img').attr('aria-label', 'Distancia del S&P 500 a su media de 200 sesiones');
+    svg.append('rect').attr('x', xs(-lim)).attr('y', 30).attr('width', xs(0) - xs(-lim)).attr('height', 12).attr('rx', 3).style('fill', k.down).style('opacity', .28);
+    svg.append('rect').attr('x', xs(0)).attr('y', 30).attr('width', xs(lim) - xs(0)).attr('height', 12).attr('rx', 3).style('fill', k.up).style('opacity', .28);
+    svg.append('line').attr('x1', xs(0)).attr('x2', xs(0)).attr('y1', 24).attr('y2', 48).style('stroke', 'var(--color-fg-muted)').attr('stroke-width', 1.5);
+    const d = Number(x.distancia);
+    const mx = xs(d);
+    svg.append('path').attr('d', `M${mx - 8},16 L${mx + 8},16 L${mx},28 Z`).style('fill', 'var(--color-fg)');
+    svg.append('text').attr('x', Math.max(pad + 20, Math.min(W - pad - 20, mx))).attr('y', 11).attr('text-anchor', 'middle')
+      .attr('font-size', 13).attr('font-weight', 600).style('fill', 'var(--color-fg)')
+      .text((d > 0 ? '+' : '') + nf(1).format(d * 100) + ' %');
+    const lab = (t, xx, anchor) => svg.append('text').attr('x', xx).attr('y', 62).attr('text-anchor', anchor).attr('font-size', 11).style('fill', 'var(--color-fg-muted)').text(t);
+    lab('−10 %', xs(-lim), 'start'); lab('media 200', xs(0), 'middle'); lab('+10 %', xs(lim), 'end');
+    svg.append('text').attr('x', pad).attr('y', 84).attr('font-size', 11).style('fill', 'var(--color-fg-muted)')
+      .text(d > 0 ? `Margen hasta la línea: ${nf(1).format(d * 100)} % de caída` : `Le falta subir ${nf(1).format(-d * 100)} % para volver a verde`);
+  });
+
+  dash.calc('turbo', {
+    inputs: ['velas'],
+    title: 'Última señal del turbo',
+    description: 'Última vela con señal de corto plazo; objetivo +2 % y stop −0,6 % del índice (+10 % y −3 % en el producto x5).',
+    fn: (velas) => {
+      const s = velas.filter((v) => Number(v.senal) === 1);
+      const l = s[s.length - 1];
+      return l ? [{fecha: l.fecha, tipo: l.tipo, entrada: Number(l.close), objetivo: Number(l.close) * 1.02, stop: Number(l.close) * 0.994, senales: s.length}] : [];
+    },
+  });
+  word('t-fecha', 'turbo', (x) => fmtDate(x.fecha));
+  word('t-tipo', 'turbo', (x) => x.tipo);
+  word('t-in', 'turbo', (x) => nf(0).format(x.entrada));
+  word('t-tp', 'turbo', (x) => nf(0).format(x.objetivo));
+  word('t-sl', 'turbo', (x) => nf(0).format(x.stop));
+  word('t-n', 'turbo', (x) => String(x.senales));
+
+  dash.calc('resumen', {
+    inputs: ['operaciones'],
+    title: 'Totales de mis operaciones',
+    description: 'Suma lo aportado en compras confirmadas, las comisiones pagadas y las órdenes pendientes.',
+    fn: (operaciones) => [{
+      aportado: operaciones.filter((o) => o.accion === 'Compra').reduce((s, o) => s + Number(o.importe), 0),
+      comisiones: operaciones.filter((o) => o.accion === 'Compra' || o.accion === 'Venta').reduce((s, o) => s + Number(o.comision || 0), 0),
+      pendientes: operaciones.filter((o) => o.accion !== 'Compra' && o.accion !== 'Venta').length,
+    }],
+  });
+  word('aportado', 'resumen', (x) => eur(x.aportado));
+  word('comisiones', 'resumen', (x) => eur(x.comisiones));
+  word('pend', 'resumen', (x) => String(x.pendientes));
 
   const rowsDraw = (name, id, key, cells) => dash.draw(name, (tb) => {
     const d = dash.data(id);
@@ -202,10 +332,9 @@
       tb.append(tr);
     });
   });
-
   rowsDraw('cal', 'calendario', 'fecha', [
     [(r) => fmtDate(r.fecha)],
-    [(r) => r.estado, (r) => (r.estado === 'Hecha' ? 'cx-done' : 'cx-pend')],
+    [(r) => r.estado, (r) => (r.estado === 'Hecha' ? '' : 'cx-pend')],
     [(r) => r.resultado || '', (r) => (r.resultado === 'DENTRO' ? 'cx-pos' : r.resultado === 'FUERA' ? 'cx-neg' : '')],
     [(r) => (r.cierre == null ? '' : nf(2).format(r.cierre)), 'num'],
   ]);
@@ -215,83 +344,97 @@
     [(r) => r.producto],
     [(r) => eur(r.importe), 'num'],
     [(r) => eur(r.comision || 0), 'num'],
+    [(r) => r.estado || '', (r) => (String(r.estado || '').startsWith('Pendiente') ? 'cx-pend' : '')],
   ]);
   rowsDraw('exp', 'expectativa', 'escenario', [
     [(r) => r.escenario],
     [(r) => eur(r.pasiva, 0), 'num'],
     [(r) => eur(r.bot, 0), 'num'],
-    [(r) => signedEur(r.extra), (r) => 'num ' + (r.extra > 0 ? 'cx-pos' : 'cx-neg')],
+    [(r) => (r.extra > 0 ? '+' : '') + nf(0).format(r.extra) + ' €', (r) => 'num ' + (r.extra > 0 ? 'cx-pos' : 'cx-neg')],
   ]);
 
   const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-  dash.draw('chart', (el) => {
-    const d = dash.data('indice');
+  dash.draw('candles', (el) => {
+    const d = dash.data('velas');
     el.replaceChildren();
     if (d.status !== 'ok' || !d.data.length) { el.textContent = '—'; return; }
-    const rows = d.data.map((r) => ({t: new Date(r.fecha + 'T00:00:00Z'), c: Number(r.cierre), m: Number(r.media200), f: r.fecha}));
-    const W = Math.max(280, el.clientWidth || 600);
-    const H = 280;
-    const c0 = dash.colors[0];
-    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
-      .attr('aria-label', 'S&P 500 y su media de 200 sesiones en el último año');
-    const yDom = [d3.min(rows, (r) => Math.min(r.c, r.m)), d3.max(rows, (r) => Math.max(r.c, r.m))];
-    const pad = (yDom[1] - yDom[0]) * 0.06;
-    const y0 = d3.scaleLinear([yDom[0] - pad, yDom[1] + pad], [H - 28, 8]).nice();
-    const yTicks = y0.ticks(5);
-    const fmtY = (v) => nf(0).format(v);
+    const k = cxColors();
+    const rows = d.data.map((r, i) => ({i, f: r.fecha, o: +r.open, h: +r.high, l: +r.low, c: +r.close, s200: +r.sma200, s5: +r.sma5, rsi: +r.rsi2, ibs: +r.ibs, sig: Number(r.senal) === 1, tipo: r.tipo, rev: r.revision}));
+    const W = Math.max(300, el.clientWidth || 700);
+    const topH = 330, gap = 26, rsiH = 90, H = topH + gap + rsiH + 24;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+      .attr('role', 'img').attr('aria-label', 'Velas diarias del S&P 500 con medias, señales y RSI(2)');
+    const lo = d3.min(rows, (r) => Math.min(r.l, r.s200)), hi = d3.max(rows, (r) => r.h);
+    const y = d3.scaleLinear([lo - (hi - lo) * 0.06, hi + (hi - lo) * 0.08], [topH, 22]).nice();
+    const yr = d3.scaleLinear([0, 100], [topH + gap + rsiH, topH + gap]);
+    const yt = y.ticks(5);
     const probe = svg.append('text').attr('font-size', 12);
-    const textW = (s) => { probe.text(s); return probe.node().getComputedTextLength(); };
-    const left = Math.ceil(d3.max(yTicks, (v) => textW(fmtY(v)))) + 10;
-    const last = rows[rows.length - 1];
-    const lblC = `S&P 500 ${nf(0).format(last.c)}`;
-    const lblM = `Media ${nf(0).format(last.m)}`;
-    const right = Math.ceil(Math.max(textW(lblC), textW(lblM))) + 14;
+    const tw = (s) => { probe.text(s); return probe.node().getComputedTextLength(); };
+    const left = Math.ceil(d3.max(yt, (v) => tw(nf(0).format(v)))) + 10;
     probe.remove();
-    const x = d3.scaleUtc(d3.extent(rows, (r) => r.t), [left, W - right]);
-    const y = y0;
+    const right = 10;
+    const x = d3.scaleBand(rows.map((r) => r.i), [left, W - right]).padding(0.3);
+    const cx = (r) => x(r.i) + x.bandwidth() / 2;
     const g = svg.append('g');
-    g.selectAll('line.grid').data(yTicks).join('line').attr('x1', left).attr('x2', W - right)
-      .attr('y1', (v) => y(v)).attr('y2', (v) => y(v)).style('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 1);
-    g.selectAll('text.yt').data(yTicks).join('text').attr('x', left - 8).attr('y', (v) => y(v)).attr('dy', '0.32em')
-      .attr('text-anchor', 'end').attr('font-size', 12).style('fill', 'var(--color-fg-muted)').text(fmtY);
-    const step = W < 520 ? 3 : 2;
-    const xTicks = x.ticks(d3.utcMonth.every(step));
-    g.selectAll('text.xt').data(xTicks).join('text').attr('x', (t) => x(t)).attr('y', H - 8).attr('text-anchor', 'middle')
-      .attr('font-size', 12).style('fill', 'var(--color-fg-muted)')
-      .text((t) => MONTHS[t.getUTCMonth()] + (t.getUTCMonth() === 0 ? ' ' + String(t.getUTCFullYear()).slice(2) : ''));
-    g.append('line').attr('x1', left).attr('x2', W - right).attr('y1', H - 28).attr('y2', H - 28).style('stroke', 'var(--cds-chart-axis)');
-    const lineM = d3.line().x((r) => x(r.t)).y((r) => y(r.m));
-    const lineC = d3.line().x((r) => x(r.t)).y((r) => y(r.c));
-    g.append('path').datum(rows).attr('d', lineM).attr('fill', 'none').style('stroke', 'var(--cds-chart-reference)')
-      .attr('stroke-width', 2).attr('stroke-dasharray', '5 4');
-    g.append('path').datum(rows).attr('d', lineC).attr('fill', 'none').style('stroke', c0)
-      .attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
-    let yc = y(last.c), ym = y(last.m);
-    if (Math.abs(yc - ym) < 16) { const mid = (yc + ym) / 2; const up = last.c >= last.m; yc = mid + (up ? -8 : 8); ym = mid + (up ? 8 : -8); }
-    g.append('circle').attr('cx', x(last.t)).attr('cy', y(last.c)).attr('r', 4).style('fill', c0);
-    g.append('text').attr('x', W - right + 8).attr('y', yc).attr('dy', '0.32em').attr('font-size', 12).style('fill', 'var(--color-fg)').text(lblC);
-    g.append('text').attr('x', W - right + 8).attr('y', ym).attr('dy', '0.32em').attr('font-size', 12).style('fill', 'var(--color-fg-muted)').text(lblM);
-
+    g.selectAll('line.gy').data(yt).join('line').attr('x1', left).attr('x2', W - right).attr('y1', (v) => y(v)).attr('y2', (v) => y(v)).style('stroke', 'var(--cds-chart-grid)');
+    g.selectAll('text.gy').data(yt).join('text').attr('x', left - 8).attr('y', (v) => y(v)).attr('dy', '0.32em').attr('text-anchor', 'end').attr('font-size', 12).style('fill', 'var(--color-fg-muted)').text((v) => nf(0).format(v));
+    // revisiones de fin de mes
+    const revs = rows.filter((r) => r.rev);
+    g.selectAll('line.rev').data(revs).join('line').attr('x1', cx).attr('x2', cx).attr('y1', 18).attr('y2', topH + gap + rsiH)
+      .style('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '2 3');
+    const showRevLabel = W >= 520;
+    g.selectAll('text.rev').data(showRevLabel ? revs : []).join('text').attr('x', cx).attr('y', 12).attr('text-anchor', 'middle')
+      .attr('font-size', 10).attr('font-weight', 600).style('fill', (r) => (r.rev === 'DENTRO' ? 'var(--color-ok)' : 'var(--color-bad)')).text((r) => r.rev);
+    // medias
+    g.append('path').datum(rows).attr('d', d3.line().x(cx).y((r) => y(r.s200))).attr('fill', 'none').style('stroke', k.s200).attr('stroke-width', 2).attr('stroke-linecap', 'round');
+    g.append('path').datum(rows).attr('d', d3.line().x(cx).y((r) => y(r.s5))).attr('fill', 'none').style('stroke', k.s5).attr('stroke-width', 1.5).attr('stroke-linecap', 'round');
+    // velas
+    const col = (r) => (r.c >= r.o ? k.up : k.down);
+    g.selectAll('line.wick').data(rows).join('line').attr('x1', cx).attr('x2', cx).attr('y1', (r) => y(r.h)).attr('y2', (r) => y(r.l)).style('stroke', col).attr('stroke-width', 1);
+    g.selectAll('rect.body').data(rows).join('rect').attr('x', (r) => x(r.i)).attr('width', x.bandwidth())
+      .attr('y', (r) => y(Math.max(r.o, r.c))).attr('height', (r) => Math.max(1, Math.abs(y(r.o) - y(r.c)))).attr('rx', Math.min(1.5, x.bandwidth() / 3)).style('fill', col);
+    // señales
+    const sigs = rows.filter((r) => r.sig);
+    const ts = Math.max(4, Math.min(7, x.bandwidth()));
+    g.selectAll('path.sig').data(sigs).join('path')
+      .attr('d', (r) => { const px = cx(r), py = y(r.l) + 6; return `M${px - ts},${py + ts * 1.5} L${px + ts},${py + ts * 1.5} L${px},${py} Z`; })
+      .style('fill', k.sig);
+    // etiquetas finales
+    const last = rows[rows.length - 1];
+    g.append('text').attr('x', W - right).attr('y', y(last.s200) + 16).attr('text-anchor', 'end').attr('font-size', 11).style('fill', k.s200)
+      .text('Media 200 ' + nf(0).format(last.s200));
+    // RSI(2)
+    g.append('rect').attr('x', left).attr('width', W - right - left).attr('y', yr(10)).attr('height', yr(0) - yr(10)).style('fill', k.down).style('opacity', .12);
+    g.append('line').attr('x1', left).attr('x2', W - right).attr('y1', yr(10)).attr('y2', yr(10)).style('stroke', k.down).attr('stroke-dasharray', '4 3');
+    g.append('path').datum(rows).attr('d', d3.line().x(cx).y((r) => yr(r.rsi))).attr('fill', 'none').style('stroke', k.sig).attr('stroke-width', 1.5);
+    g.selectAll('text.ry').data([10, 50, 90]).join('text').attr('x', left - 8).attr('y', (v) => yr(v)).attr('dy', '0.32em').attr('text-anchor', 'end').attr('font-size', 11).style('fill', 'var(--color-fg-muted)').text((v) => v);
+    g.append('text').attr('x', left + 4).attr('y', topH + gap - 6).attr('font-size', 11).style('fill', 'var(--color-fg-muted)').text('RSI(2) · zona roja por debajo de 10');
+    // eje de meses
+    const firsts = rows.filter((r, j) => j === 0 || r.f.slice(5, 7) !== rows[j - 1].f.slice(5, 7));
+    g.selectAll('text.mx').data(firsts).join('text').attr('x', cx).attr('y', H - 6).attr('text-anchor', 'start').attr('font-size', 12).style('fill', 'var(--color-fg-muted)')
+      .text((r) => MONTHS[+r.f.slice(5, 7) - 1]);
+    // tooltip
     const tip = d3.select(el).append('div').attr('class', 'cx-tip').style('display', 'none');
-    const dot = g.append('circle').attr('r', 4).style('fill', c0).style('display', 'none');
-    const bis = d3.bisector((r) => r.t).center;
-    svg.append('rect').attr('x', left).attr('y', 0).attr('width', W - left - right).attr('height', H - 28)
-      .attr('fill', 'transparent')
+    const hl = g.append('rect').attr('y', 18).attr('height', topH + gap + rsiH - 18).style('fill', 'var(--color-fg)').style('opacity', .06).style('display', 'none');
+    svg.append('rect').attr('x', left).attr('y', 0).attr('width', W - left - right).attr('height', topH + gap + rsiH).attr('fill', 'transparent')
       .on('pointermove', (ev) => {
         const [px] = d3.pointer(ev);
-        const r = rows[bis(rows, x.invert(px))];
-        dot.style('display', null).attr('cx', x(r.t)).attr('cy', y(r.c));
+        const j = Math.max(0, Math.min(rows.length - 1, Math.round((px - left - x.step() * x.paddingOuter() - x.bandwidth() / 2) / x.step())));
+        const r = rows[j];
+        hl.style('display', null).attr('x', x(r.i) - x.step() * 0.15).attr('width', x.step());
         tip.style('display', null).html('');
         tip.append('div').attr('class', 'cx-tip-date').text(fmtDate(r.f));
-        const a = tip.append('div');
-        a.append('span').attr('class', 'cx-sw').style('background', c0);
-        a.append('span').text('S&P 500 ' + nf(2).format(r.c));
-        tip.append('div').text('Media 200 ' + nf(2).format(r.m) + ' (' + (r.c > r.m ? '+' : '') + nf(1).format((r.c / r.m - 1) * 100) + ' %)');
+        tip.append('div').text(`Apertura ${nf(0).format(r.o)} · Cierre ${nf(0).format(r.c)}`);
+        tip.append('div').text(`Máx ${nf(0).format(r.h)} · Mín ${nf(0).format(r.l)}`);
+        tip.append('div').text(`RSI(2) ${nf(1).format(r.rsi)} · IBS ${nf(2).format(r.ibs)}`);
+        tip.append('div').text(`Media 200 ${nf(0).format(r.s200)} (${r.c > r.s200 ? '+' : ''}${nf(1).format((r.c / r.s200 - 1) * 100)} %)`);
+        if (r.sig) tip.append('div').style('color', k.sig).style('font-weight', '600').text('Señal del turbo: ' + r.tipo);
+        if (r.rev) tip.append('div').style('font-weight', '600').text('Revisión: ' + r.rev);
         const box = el.getBoundingClientRect();
-        const sx = (x(r.t) / W) * box.width;
-        const tw = tip.node().offsetWidth;
-        tip.style('left', Math.max(0, Math.min(box.width - tw, sx + 12)) + 'px').style('top', '8px');
+        const sx = (cx(r) / W) * box.width;
+        const w = tip.node().offsetWidth;
+        tip.style('left', (sx + 14 + w > box.width ? sx - 14 - w : sx + 14) + 'px').style('top', '24px');
       })
-      .on('pointerleave', () => { tip.style('display', 'none'); dot.style('display', 'none'); });
+      .on('pointerleave', () => { tip.style('display', 'none'); hl.style('display', 'none'); });
   });
 </script>

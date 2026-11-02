@@ -3,7 +3,8 @@
 python -m swingbot.dashboard_data [carpeta]   (por defecto reports/dashboard)
 
 - senal.json        estado de la señal hoy
-- indice.json       S&P 500 y su media de 200 sesiones (último año)
+- velas.json        velas diarias del S&P 500 (6 meses) con medias, RSI(2), señales
+                    de corto plazo y revisiones de fin de mes
 - calendario.json   revisiones de los próximos 12 meses (estado según la fecha)
 - operaciones.json  NO se genera: es el registro de tus operaciones reales y se
                     mantiene a mano en reports/dashboard/operaciones.json
@@ -20,6 +21,7 @@ from pandas.tseries.offsets import CustomBusinessMonthEnd
 
 from . import data, trend
 from .indicators import add_indicators
+from .strategies import get
 
 START_PLAN = "2026-11-01"
 
@@ -42,9 +44,20 @@ def build(out_dir: str = "reports/dashboard") -> list[Path]:
         "producto": "Certificado factor Long x3 S&P 500" if st["inside"] else "ETF S&P 500 (x1)",
     }]
 
-    last = df.loc[df.index >= df.index[-1] - pd.DateOffset(years=1)]
-    indice = [{"fecha": f"{d:%Y-%m-%d}", "cierre": round(float(r.Close), 2),
-               "media200": round(float(r.sma200), 2)} for d, r in last.iterrows()]
+    sig = {k: get(k).entry_signal(df) for k in ("pullback", "rsi2", "ibs")}
+    six = df.loc[df.index >= df.index[-1] - pd.DateOffset(months=6)]
+    velas = []
+    for d, r in six.iterrows():
+        tipos = [k for k in ("pullback", "rsi2", "ibs") if bool(sig[k].loc[d])]
+        rev = ""
+        if int(r.days_left_month) == 0:
+            rev = "DENTRO" if r.Close > r.sma200 else "FUERA"
+        velas.append({"fecha": f"{d:%Y-%m-%d}", "open": round(float(r.Open), 2),
+                      "high": round(float(r.High), 2), "low": round(float(r.Low), 2),
+                      "close": round(float(r.Close), 2), "sma200": round(float(r.sma200), 2),
+                      "sma5": round(float(r.sma5), 2), "rsi2": round(float(r.rsi2), 1),
+                      "ibs": round(float(r.ibs), 2), "senal": 1 if tipos else 0,
+                      "tipo": " + ".join(tipos), "revision": rev})
 
     cal_off = CustomBusinessMonthEnd(calendar=USFederalHolidayCalendar())
     dates = pd.date_range(START_PLAN, periods=12, freq=cal_off)
@@ -61,7 +74,7 @@ def build(out_dir: str = "reports/dashboard") -> list[Path]:
                                "resultado": "", "cierre": None})
 
     written = []
-    for name, rows in (("senal", senal), ("indice", indice), ("calendario", calendario)):
+    for name, rows in (("senal", senal), ("velas", velas), ("calendario", calendario)):
         p = out / f"{name}.json"
         p.write_text(json.dumps(rows, ensure_ascii=False, indent=1))
         written.append(p)

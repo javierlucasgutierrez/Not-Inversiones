@@ -1,1 +1,3 @@
-[]
+[
+ {"id": "1", "fecha": "2026-11-02", "accion": "Compra pendiente", "producto": "Factor Long x3 S&P 500", "importe": 50, "comision": 1, "estado": "Pendiente de confirmar"}
+]
