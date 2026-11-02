@@ -1,0 +1,7 @@
+[
+ {"escenario": "Año malo (1 de cada 10)", "pasiva": 556, "bot": 513, "extra": -61},
+ {"escenario": "Año flojo (1 de cada 4)", "pasiva": 613, "bot": 574, "extra": -25},
+ {"escenario": "Año típico (mediana)", "pasiva": 649, "bot": 676, "extra": 29},
+ {"escenario": "Año bueno (1 de cada 4)", "pasiva": 676, "bot": 776, "extra": 102},
+ {"escenario": "Año muy bueno (1 de cada 10)", "pasiva": 702, "bot": 872, "extra": 171}
+]

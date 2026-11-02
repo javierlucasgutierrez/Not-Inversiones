@@ -1,0 +1,297 @@
+<meta name="dash-one-writer">
+<style>
+  .cx { display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); max-width: 72rem; margin-inline: auto; }
+  .cx-head { display: grid; gap: var(--cds-gap-sm); }
+  .cx-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .cx-take { margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg); max-width: 65ch; }
+  .cx-alert { margin: 0; font-size: var(--cds-font-size-body); color: var(--color-warn); max-width: 65ch; }
+  .cx b { font-weight: 600; }
+  .cx-tiles { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
+  .cx-tile { display: grid; gap: var(--cds-gap-xs); align-content: start; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .cx-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .02em; }
+  .cx-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .cx-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+  .cx-chip { display: inline-block; justify-self: start; font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-heading); font-weight: 600; letter-spacing: .04em; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-radius: var(--cds-radius); border: 1px solid var(--color-border-line); }
+  .cx-chip.is-in { color: var(--color-ok); border-color: var(--color-ok); }
+  .cx-chip.is-out { color: var(--color-bad); border-color: var(--color-bad); }
+  .cx-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); }
+  .cx-card { display: grid; gap: var(--cds-gap-sm); align-content: start; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .cx-h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+  .cx-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 70ch; }
+  .cx-chart { position: relative; min-height: 280px; }
+  .cx-chart svg { display: block; overflow: visible; }
+  .cx-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .cx-tip-date { color: var(--cds-text-secondary); }
+  .cx-sw { display: inline-block; width: .6rem; height: .6rem; border-radius: 2px; margin-right: .35rem; vertical-align: baseline; }
+  .cx-tablewrap { overflow-x: auto; }
+  .cx-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-body); font-variant-numeric: tabular-nums; }
+  .cx-table th { text-align: left; font-size: var(--cds-font-size-caption); font-weight: 500; color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+  .cx-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+  .cx-table .num { text-align: right; }
+  .cx-pos { color: var(--color-ok); }
+  .cx-neg { color: var(--color-bad); }
+  .cx-done { color: var(--color-fg); }
+  .cx-pend { color: var(--color-fg-muted); }
+  .cx-mini { display: grid; gap: var(--cds-gap-sm); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cx-mini .cx-big { font-size: var(--cds-font-size-heading); font-family: var(--font-anthropic-serif); }
+  .cx-rules { margin: 0; padding-left: 1.2rem; display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-body); max-width: 70ch; }
+  [data-dash-source-state=empty] { color: transparent; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+</style>
+
+<div class="cx">
+  <header class="cx-head">
+    <h1 class="cx-title">Cartera x3 Tendencia</h1>
+    <p class="cx-take" data-when="in">La señal está <b>DENTRO</b>: mantén el certificado factor Long x3 del S&amp;P 500 y no toques nada hasta la próxima revisión, el <b data-draw="prox-a" data-source="senal" data-field="proxima_revision">—</b>.</p>
+    <p class="cx-take" data-when="out" hidden>La señal está <b>FUERA</b>: el dinero va en un ETF normal (x1) del S&amp;P 500 hasta que la señal vuelva a DENTRO. Próxima revisión: <b data-draw="prox-b" data-source="senal" data-field="proxima_revision">—</b>.</p>
+    <p class="cx-alert" data-when="alert" hidden>Alerta temprana: hoy el S&amp;P 500 está al otro lado de su media. No actúes todavía; sólo cuenta el cierre del día de revisión.</p>
+  </header>
+
+  <section class="cx-tiles" aria-label="Estado de la señal">
+    <div class="cx-tile">
+      <span class="cx-label">Señal (última revisión)</span>
+      <span class="cx-chip" data-draw="estado" data-source="senal" data-field="estado">—</span>
+      <span class="cx-sub">Revisada el <span data-draw="rev" data-source="senal" data-field="revision_anterior">—</span></span>
+    </div>
+    <div class="cx-tile">
+      <span class="cx-label">S&amp;P 500, último cierre</span>
+      <span class="cx-big" data-draw="cierre" data-source="senal" data-field="cierre">—</span>
+      <span class="cx-sub">Cierre del <span data-draw="fecha" data-source="senal" data-field="fecha">—</span></span>
+    </div>
+    <div class="cx-tile">
+      <span class="cx-label">Distancia a la media de 200 sesiones</span>
+      <span class="cx-big" data-draw="dist" data-source="senal" data-field="distancia">—</span>
+      <span class="cx-sub">Media: <span data-draw="media" data-source="senal" data-field="media200">—</span></span>
+    </div>
+    <div class="cx-tile">
+      <span class="cx-label">Próxima revisión</span>
+      <span class="cx-big" data-draw="prox" data-source="senal" data-field="proxima_revision">—</span>
+      <span class="cx-sub">Producto: <span data-draw="prod" data-source="senal" data-field="producto">—</span></span>
+    </div>
+  </section>
+
+  <section class="cx-card" id="grafico">
+    <h2 class="cx-h2">S&amp;P 500 frente a su media de 200 sesiones</h2>
+    <p class="cx-note">Último año. Si el último día hábil del mes el índice cierra por encima de la línea discontinua, la señal es DENTRO (x3); si cierra por debajo, FUERA (x1).</p>
+    <div class="cx-chart" data-draw="chart" data-source="indice"></div>
+  </section>
+
+  <div class="cx-grid">
+    <section class="cx-card" id="calendario">
+      <h2 class="cx-h2">Calendario de revisiones</h2>
+      <p class="cx-note">Último día hábil de cada mes, hacia las 21:45 (hora de España). Sólo ese día se compra o se vende.</p>
+      <div class="cx-tablewrap">
+        <table class="cx-table" data-source="calendario" data-row-key="fecha">
+          <thead><tr><th data-field="fecha">Fecha</th><th data-field="estado">Revisión</th><th data-field="resultado">Señal</th><th class="num" data-field="cierre">Cierre S&amp;P 500</th></tr></thead>
+          <tbody data-draw="cal"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="cx-card" id="operaciones">
+      <h2 class="cx-h2">Mis operaciones</h2>
+      <p class="cx-note">Lo que compras y vendes en Trade Republic. Cuéntamelo en el chat y lo apunto aquí.</p>
+      <div class="cx-mini">
+        <div class="cx-tile"><span class="cx-label">Aportado</span><span class="cx-big" data-draw="aportado" data-source="resumen" data-field="aportado">—</span></div>
+        <div class="cx-tile"><span class="cx-label">Comisiones</span><span class="cx-big" data-draw="comisiones" data-source="resumen" data-field="comisiones">—</span></div>
+        <div class="cx-tile"><span class="cx-label">Operaciones</span><span class="cx-big" data-draw="nops" data-source="resumen" data-field="operaciones">—</span></div>
+      </div>
+      <p class="cx-note" data-ops-empty hidden>Aún no hay operaciones. La primera será la compra de 50 € del certificado factor Long x3 sobre el S&amp;P 500.</p>
+      <div class="cx-tablewrap" data-ops-table hidden>
+        <table class="cx-table" data-source="operaciones" data-row-key="id">
+          <thead><tr><th data-field="fecha">Fecha</th><th data-field="accion">Acción</th><th data-field="producto">Producto</th><th class="num" data-field="importe">Importe</th><th class="num" data-field="comision">Comisión</th></tr></thead>
+          <tbody data-draw="ops"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="cx-card" id="expectativa">
+    <h2 class="cx-h2">Qué esperar en un año</h2>
+    <p class="cx-note">Con 50 € al empezar y 50 € al mes (600 € en un año). Simulación de 382 años distintos del histórico desde 1994, antes de impuestos. La estrategia gana a la inversión pasiva en 6 de cada 10 años; su ventaja aparece con los años.</p>
+    <div class="cx-tablewrap">
+      <table class="cx-table" data-source="expectativa" data-row-key="escenario">
+        <thead><tr><th data-field="escenario">Escenario</th><th class="num" data-field="pasiva">Pasiva x1</th><th class="num" data-field="bot">Estrategia x3</th><th class="num" data-field="extra">Diferencia</th></tr></thead>
+        <tbody data-draw="exp"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="cx-card" id="reglas">
+    <h2 class="cx-h2">Las reglas</h2>
+    <ol class="cx-rules">
+      <li>El último día hábil del mes, mira si el S&amp;P 500 cierra por encima de su media de 200 sesiones.</li>
+      <li>Por encima: certificado factor Long x3 sobre el S&amp;P 500. Las aportaciones nuevas, también al x3.</li>
+      <li>Por debajo: vende el x3 y compra un ETF normal del S&amp;P 500. Las aportaciones nuevas, al ETF.</li>
+      <li>Entre revisiones no se toca nada, aunque el mercado caiga.</li>
+    </ol>
+    <p class="cx-note">No es asesoramiento financiero. En el histórico hubo caídas de más del 60 % en algún momento, y el pasado no garantiza el futuro.</p>
+  </section>
+</div>
+
+<script>
+  const nf = (d) => new Intl.NumberFormat('es-ES', {minimumFractionDigits: d, maximumFractionDigits: d});
+  const fmtDate = (s) => s ? new Intl.DateTimeFormat('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC'}).format(new Date(s + 'T00:00:00Z')) : '';
+  const eur = (v, d = 2) => nf(d).format(Number(v)) + ' €';
+  const signedEur = (v) => (Number(v) > 0 ? '+' : '') + nf(0).format(Number(v)) + ' €';
+  const one = (id) => { const d = dash.data(id); return d.status === 'ok' && d.data.length ? d.data[0] : null; };
+  const word = (name, id, f) => dash.draw(name, (el) => { const r = one(id); el.textContent = r ? f(r) : '—'; });
+
+  word('prox-a', 'senal', (r) => fmtDate(r.proxima_revision));
+  word('prox-b', 'senal', (r) => fmtDate(r.proxima_revision));
+  word('prox', 'senal', (r) => fmtDate(r.proxima_revision));
+  word('rev', 'senal', (r) => fmtDate(r.revision_anterior));
+  word('fecha', 'senal', (r) => fmtDate(r.fecha));
+  word('cierre', 'senal', (r) => nf(2).format(r.cierre));
+  word('media', 'senal', (r) => nf(2).format(r.media200));
+  word('prod', 'senal', (r) => r.producto);
+  dash.draw('dist', (el) => {
+    const r = one('senal');
+    el.textContent = r ? (r.distancia > 0 ? '+' : '') + nf(1).format(r.distancia * 100) + ' %' : '—';
+    el.classList.toggle('cx-pos', !!r && r.distancia > 0);
+    el.classList.toggle('cx-neg', !!r && r.distancia <= 0);
+  });
+  dash.draw('estado', (el) => {
+    const r = one('senal');
+    el.textContent = r ? r.estado : '—';
+    el.classList.toggle('is-in', !!r && r.estado === 'DENTRO');
+    el.classList.toggle('is-out', !!r && r.estado === 'FUERA');
+  });
+
+  dash.calc('resumen', {
+    inputs: ['operaciones'],
+    title: 'Totales de mis operaciones',
+    description: 'Suma el dinero aportado en compras, las comisiones y el número de operaciones.',
+    fn: (operaciones) => [{
+      aportado: operaciones.filter((o) => o.accion === 'Compra').reduce((s, o) => s + Number(o.importe), 0),
+      comisiones: operaciones.reduce((s, o) => s + Number(o.comision || 0), 0),
+      operaciones: operaciones.length,
+    }],
+  });
+  word('aportado', 'resumen', (r) => eur(r.aportado));
+  word('comisiones', 'resumen', (r) => eur(r.comisiones));
+  word('nops', 'resumen', (r) => String(r.operaciones));
+
+  dash.onData(() => {
+    const r = one('senal');
+    document.querySelectorAll('[data-when]').forEach((e) => {
+      const w = e.dataset.when;
+      e.hidden = !r || (w === 'in' && r.estado !== 'DENTRO') || (w === 'out' && r.estado !== 'FUERA')
+        || (w === 'alert' && r.estado_hoy === r.estado);
+    });
+    const ops = dash.data('operaciones');
+    const empty = ops.status === 'ok' && ops.data.length === 0;
+    document.querySelectorAll('[data-ops-empty]').forEach((e) => { e.hidden = !empty; });
+    document.querySelectorAll('[data-ops-table]').forEach((e) => { e.hidden = empty; });
+  });
+
+  const rowsDraw = (name, id, key, cells) => dash.draw(name, (tb) => {
+    const d = dash.data(id);
+    tb.replaceChildren();
+    if (d.status !== 'ok') return;
+    d.data.forEach((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = String(r[key]);
+      cells.forEach(([get, cls]) => {
+        const td = document.createElement('td');
+        td.textContent = get(r);
+        const c = typeof cls === 'function' ? cls(r) : cls;
+        if (c) td.className = c;
+        tr.append(td);
+      });
+      tb.append(tr);
+    });
+  });
+
+  rowsDraw('cal', 'calendario', 'fecha', [
+    [(r) => fmtDate(r.fecha)],
+    [(r) => r.estado, (r) => (r.estado === 'Hecha' ? 'cx-done' : 'cx-pend')],
+    [(r) => r.resultado || '', (r) => (r.resultado === 'DENTRO' ? 'cx-pos' : r.resultado === 'FUERA' ? 'cx-neg' : '')],
+    [(r) => (r.cierre == null ? '' : nf(2).format(r.cierre)), 'num'],
+  ]);
+  rowsDraw('ops', 'operaciones', 'id', [
+    [(r) => fmtDate(r.fecha)],
+    [(r) => r.accion],
+    [(r) => r.producto],
+    [(r) => eur(r.importe), 'num'],
+    [(r) => eur(r.comision || 0), 'num'],
+  ]);
+  rowsDraw('exp', 'expectativa', 'escenario', [
+    [(r) => r.escenario],
+    [(r) => eur(r.pasiva, 0), 'num'],
+    [(r) => eur(r.bot, 0), 'num'],
+    [(r) => signedEur(r.extra), (r) => 'num ' + (r.extra > 0 ? 'cx-pos' : 'cx-neg')],
+  ]);
+
+  const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  dash.draw('chart', (el) => {
+    const d = dash.data('indice');
+    el.replaceChildren();
+    if (d.status !== 'ok' || !d.data.length) { el.textContent = '—'; return; }
+    const rows = d.data.map((r) => ({t: new Date(r.fecha + 'T00:00:00Z'), c: Number(r.cierre), m: Number(r.media200), f: r.fecha}));
+    const W = Math.max(280, el.clientWidth || 600);
+    const H = 280;
+    const c0 = dash.colors[0];
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', 'S&P 500 y su media de 200 sesiones en el último año');
+    const yDom = [d3.min(rows, (r) => Math.min(r.c, r.m)), d3.max(rows, (r) => Math.max(r.c, r.m))];
+    const pad = (yDom[1] - yDom[0]) * 0.06;
+    const y0 = d3.scaleLinear([yDom[0] - pad, yDom[1] + pad], [H - 28, 8]).nice();
+    const yTicks = y0.ticks(5);
+    const fmtY = (v) => nf(0).format(v);
+    const probe = svg.append('text').attr('font-size', 12);
+    const textW = (s) => { probe.text(s); return probe.node().getComputedTextLength(); };
+    const left = Math.ceil(d3.max(yTicks, (v) => textW(fmtY(v)))) + 10;
+    const last = rows[rows.length - 1];
+    const lblC = `S&P 500 ${nf(0).format(last.c)}`;
+    const lblM = `Media ${nf(0).format(last.m)}`;
+    const right = Math.ceil(Math.max(textW(lblC), textW(lblM))) + 14;
+    probe.remove();
+    const x = d3.scaleUtc(d3.extent(rows, (r) => r.t), [left, W - right]);
+    const y = y0;
+    const g = svg.append('g');
+    g.selectAll('line.grid').data(yTicks).join('line').attr('x1', left).attr('x2', W - right)
+      .attr('y1', (v) => y(v)).attr('y2', (v) => y(v)).style('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 1);
+    g.selectAll('text.yt').data(yTicks).join('text').attr('x', left - 8).attr('y', (v) => y(v)).attr('dy', '0.32em')
+      .attr('text-anchor', 'end').attr('font-size', 12).style('fill', 'var(--color-fg-muted)').text(fmtY);
+    const step = W < 520 ? 3 : 2;
+    const xTicks = x.ticks(d3.utcMonth.every(step));
+    g.selectAll('text.xt').data(xTicks).join('text').attr('x', (t) => x(t)).attr('y', H - 8).attr('text-anchor', 'middle')
+      .attr('font-size', 12).style('fill', 'var(--color-fg-muted)')
+      .text((t) => MONTHS[t.getUTCMonth()] + (t.getUTCMonth() === 0 ? ' ' + String(t.getUTCFullYear()).slice(2) : ''));
+    g.append('line').attr('x1', left).attr('x2', W - right).attr('y1', H - 28).attr('y2', H - 28).style('stroke', 'var(--cds-chart-axis)');
+    const lineM = d3.line().x((r) => x(r.t)).y((r) => y(r.m));
+    const lineC = d3.line().x((r) => x(r.t)).y((r) => y(r.c));
+    g.append('path').datum(rows).attr('d', lineM).attr('fill', 'none').style('stroke', 'var(--cds-chart-reference)')
+      .attr('stroke-width', 2).attr('stroke-dasharray', '5 4');
+    g.append('path').datum(rows).attr('d', lineC).attr('fill', 'none').style('stroke', c0)
+      .attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
+    let yc = y(last.c), ym = y(last.m);
+    if (Math.abs(yc - ym) < 16) { const mid = (yc + ym) / 2; const up = last.c >= last.m; yc = mid + (up ? -8 : 8); ym = mid + (up ? 8 : -8); }
+    g.append('circle').attr('cx', x(last.t)).attr('cy', y(last.c)).attr('r', 4).style('fill', c0);
+    g.append('text').attr('x', W - right + 8).attr('y', yc).attr('dy', '0.32em').attr('font-size', 12).style('fill', 'var(--color-fg)').text(lblC);
+    g.append('text').attr('x', W - right + 8).attr('y', ym).attr('dy', '0.32em').attr('font-size', 12).style('fill', 'var(--color-fg-muted)').text(lblM);
+
+    const tip = d3.select(el).append('div').attr('class', 'cx-tip').style('display', 'none');
+    const dot = g.append('circle').attr('r', 4).style('fill', c0).style('display', 'none');
+    const bis = d3.bisector((r) => r.t).center;
+    svg.append('rect').attr('x', left).attr('y', 0).attr('width', W - left - right).attr('height', H - 28)
+      .attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [px] = d3.pointer(ev);
+        const r = rows[bis(rows, x.invert(px))];
+        dot.style('display', null).attr('cx', x(r.t)).attr('cy', y(r.c));
+        tip.style('display', null).html('');
+        tip.append('div').attr('class', 'cx-tip-date').text(fmtDate(r.f));
+        const a = tip.append('div');
+        a.append('span').attr('class', 'cx-sw').style('background', c0);
+        a.append('span').text('S&P 500 ' + nf(2).format(r.c));
+        tip.append('div').text('Media 200 ' + nf(2).format(r.m) + ' (' + (r.c > r.m ? '+' : '') + nf(1).format((r.c / r.m - 1) * 100) + ' %)');
+        const box = el.getBoundingClientRect();
+        const sx = (x(r.t) / W) * box.width;
+        const tw = tip.node().offsetWidth;
+        tip.style('left', Math.max(0, Math.min(box.width - tw, sx + 12)) + 'px').style('top', '8px');
+      })
+      .on('pointerleave', () => { tip.style('display', 'none'); dot.style('display', 'none'); });
+  });
+</script>

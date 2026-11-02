@@ -325,6 +325,16 @@ financiación por año son aproximados; se tributa en cada cambio DENTRO/FUERA.
 
 ---
 
+### Panel "Cartera x3 Tendencia"
+
+Panel privado en claude.ai con la señal, el gráfico del S&P 500 frente a su media,
+el calendario de revisiones, las operaciones reales y la expectativa a un año. Los
+datos salen de `python -m swingbot.dashboard_data` (carpeta `reports/dashboard/`). La
+vigilancia diaria los vuelve a generar y los sube. `operaciones.json` se mantiene a
+mano con cada compra o venta real.
+
+---
+
 ## 8. Estructura
 
 ```
@@ -337,6 +347,7 @@ swingbot/
   scanner.py     señales del día
   report.py      rejilla de robustez + validación fuera de muestra
   trend.py       estrategia x3 con tendencia mensual (señal + backtest)
+  dashboard_data.py  datos del panel (señal, índice, calendario)
   compare.py     bot frente a plan ETF/fondo periódico y tendencia con traspasos (impuestos, gráfico)
   config.py      índices, instrumentos, brókers (TR / DEGIRO), productos y parámetros
 tests/           tests del motor (apalancamiento, TP/SL, gaps)
