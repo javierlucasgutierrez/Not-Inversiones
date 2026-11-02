@@ -64,6 +64,10 @@ def main(argv=None):
     t.add_argument("--initial", type=float, default=50)
     t.add_argument("--monthly", type=float, default=50)
 
+    fo = sub.add_parser("fondeo", help="Operativa de 1 día para una cuenta de fondeo")
+    fo.add_argument("--cuenta", type=float, default=10_000, help="Saldo de la cuenta")
+    fo.add_argument("--historial", action="store_true", help="Señales de los últimos 6 meses")
+
     c = sub.add_parser("compare", help="Bot frente a aportar periódicamente a un ETF")
     c.add_argument("--initial", type=float, default=1_000)
     c.add_argument("--monthly", type=float, default=200)
@@ -130,6 +134,17 @@ def main(argv=None):
                     print(f"  desde {start} x{lev:g} tendencia, fuera->{out}: aportado "
                           f"{cmp._eur(p.invested.iloc[-1])} -> {cmp._eur(p.value.iloc[-1])}  "
                           f"TIR {cmp.xirr(p.flows):+.1%}  peor caída {dd:+.0%}")
+
+    elif a.cmd == "fondeo":
+        from . import fondeo
+        print(fondeo.report(a.cuenta))
+        if a.historial:
+            h = fondeo.history()
+            print("\nSeñales de los últimos 6 meses y resultado al día siguiente:")
+            print(h.to_string(formatters={"Close": "{:,.0f}".format, "indice_dia_sig": "{:+.2%}".format,
+                                          "cuenta_x2": "{:+.2%}".format}))
+            ok = h.cuenta_x2.dropna()
+            print(f"Total: {len(ok)} operaciones, {(ok > 0).mean():.0%} ganadoras, suma {ok.sum():+.1%} de la cuenta")
 
     elif a.cmd == "compare":
         from . import compare as cmp
