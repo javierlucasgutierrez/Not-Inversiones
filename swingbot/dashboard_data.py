@@ -56,7 +56,10 @@ def build(out_dir: str = "reports/dashboard") -> list[Path]:
                       "high": round(float(r.High), 2), "low": round(float(r.Low), 2),
                       "close": round(float(r.Close), 2), "sma200": round(float(r.sma200), 2),
                       "sma5": round(float(r.sma5), 2), "rsi2": round(float(r.rsi2), 1),
-                      "ibs": round(float(r.ibs), 2), "senal": 1 if tipos else 0,
+                      "ibs": round(float(r.ibs), 2),
+                      # Turbo x5 (práctica): sólo la señal que resiste costes en el backtest
+                      # (research/marchas.py): RSI(2) < 5 y 3 cierres bajistas seguidos.
+                      "senal": 1 if (r.rsi2 < 5 and r.down_streak >= 3 and r.Close > r.sma200) else 0,
                       "tipo": " + ".join(tipos), "revision": rev})
 
     cal_off = CustomBusinessMonthEnd(calendar=USFederalHolidayCalendar())
