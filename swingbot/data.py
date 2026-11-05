@@ -29,7 +29,7 @@ def load(symbol: str, start: str = "1990-01-01", refresh: bool = False,
         import yfinance as yf
 
         # Siempre se descarga el histórico completo; luego se recorta a `start`.
-        df = yf.download(symbol, start="1990-01-01", auto_adjust=True, progress=False)
+        df = yf.download(symbol, start="1950-01-01", auto_adjust=True, progress=False)
         df = _flatten(df)
         if df.empty:
             if path.exists():

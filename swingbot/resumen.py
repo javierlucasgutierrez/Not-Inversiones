@@ -35,6 +35,23 @@ def _tendencia(c: float, s20: float, s50: float, s200: float, slope200: float) -
     return "debilitándose, por debajo de la media 200"
 
 
+def probabilidad_cambio(dist: float, dias_sesiones: int, inside: bool) -> tuple[float, int]:
+    """En situaciones parecidas desde 1960 (distancia a la media 200 ±0,75 puntos y
+    ±2 sesiones hasta fin de mes), qué parte acabó con la señal contraria en la revisión."""
+    h = add_indicators(data.load("^GSPC", start="1955-01-01"))
+    h = h.dropna(subset=["sma200"]).loc["1960-01-01":]
+    dist_h = h.Close / h.sma200 - 1
+    left = h.days_left_month
+    eom_above = (h.Close > h.sma200).where(left == 0).bfill()       # resultado en la próxima revisión
+    same_side = (dist_h > 0) == inside
+    m = ((dist_h - dist).abs() < 0.0075) & ((left - dias_sesiones).abs() <= 2) & same_side & (left > 0)
+    res = eom_above[m].dropna()
+    if len(res) < 20:
+        return float("nan"), len(res)
+    flip = (res.astype(bool) != inside).mean()
+    return float(flip), int(len(res))
+
+
 def build() -> str:
     df = add_indicators(data.load("^GSPC", start="2023-01-01", refresh=True))
     df["sma20"] = sma(df.Close, 20)
@@ -71,6 +88,21 @@ def build() -> str:
         f"Estrategia: {'DENTRO → mantener x3' if st['inside'] else 'FUERA → x1'}. "
         f"Revisión el {st['next_check']:%d/%m/%Y} (faltan {dias} días).",
     ]
+    # Lo más probable en la próxima revisión
+    sesiones = int(last.days_left_month)
+    p, n = probabilidad_cambio(float(st["dist"]), max(sesiones, 1), bool(c > float(last.sma200)))
+    hoy_dentro = c > float(last.sma200)
+    if p == p:  # no es NaN
+        seguir = "MANTENER x3" if hoy_dentro else "seguir en x1"
+        cambiar = "pasar a x1" if hoy_dentro else "volver al x3"
+        principal = seguir if p < 0.5 else cambiar
+        prob = 1 - p if p < 0.5 else p
+        lines.append(f"Lo más probable el {st['next_check']:%d/%m}: {principal.upper()} "
+                     f"({_es(prob * 100, 0)} % de {n} casos parecidos desde 1960; "
+                     f"{_es(min(p, 1 - p) * 100, 0)} % acabaron en {cambiar if p < 0.5 else seguir}).")
+    prox_aport = (today + pd.offsets.MonthBegin(1))
+    lines.append(f"Próximas tareas: nada hasta la revisión del {st['next_check']:%d/%m}; "
+                 f"aportación de 50 € a principios de mes ({prox_aport:%d/%m}) al producto que toque.")
     if st["inside"] != (c > float(last.sma200)):
         lines.append("⚠️ Alerta temprana: hoy está al otro lado de la media 200. No se actúa hasta la revisión.")
     elif abs(st["dist"]) < 0.02:
