@@ -52,6 +52,20 @@ def probabilidad_cambio(dist: float, dias_sesiones: int, inside: bool) -> tuple[
     return float(flip), int(len(res))
 
 
+def proxima_aportacion() -> pd.Timestamp:
+    """Cada compra cubre un mes desde noviembre de 2026; la siguiente aportación es el
+    primer día hábil del mes siguiente al último cubierto (las adelantadas cuentan)."""
+    import json
+    from pathlib import Path
+    p = Path(__file__).resolve().parent.parent / "reports" / "dashboard" / "operaciones.json"
+    try:
+        n = sum(1 for o in json.loads(p.read_text()) if o.get("accion") == "Compra")
+    except (OSError, ValueError):
+        n = 0
+    first = pd.Timestamp("2026-11-01") + pd.DateOffset(months=n)
+    return first + pd.offsets.BDay(0)
+
+
 def build() -> str:
     df = add_indicators(data.load("^GSPC", start="2023-01-01", refresh=True))
     df["sma20"] = sma(df.Close, 20)
@@ -100,7 +114,7 @@ def build() -> str:
         lines.append(f"Lo más probable el {st['next_check']:%d/%m}: {principal.upper()} "
                      f"({_es(prob * 100, 0)} % de {n} casos parecidos desde 1960; "
                      f"{_es(min(p, 1 - p) * 100, 0)} % acabaron en {cambiar if p < 0.5 else seguir}).")
-    prox_aport = (today + pd.offsets.MonthBegin(1))
+    prox_aport = proxima_aportacion()
     lines.append(f"Próximas tareas: nada hasta la revisión del {st['next_check']:%d/%m}; "
                  f"aportación de 50 € a principios de mes ({prox_aport:%d/%m}) al producto que toque.")
     if st["inside"] != (c > float(last.sma200)):
