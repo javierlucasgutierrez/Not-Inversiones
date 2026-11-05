@@ -63,7 +63,8 @@ def proxima_aportacion() -> pd.Timestamp:
     except (OSError, ValueError):
         n = 0
     first = pd.Timestamp("2026-11-01") + pd.DateOffset(months=n)
-    return first + pd.offsets.BDay(0)
+    from pandas.tseries.holiday import USFederalHolidayCalendar
+    return first + pd.offsets.CustomBusinessDay(0, calendar=USFederalHolidayCalendar())
 
 
 def build() -> str:
@@ -116,7 +117,7 @@ def build() -> str:
                      f"{_es(min(p, 1 - p) * 100, 0)} % acabaron en {cambiar if p < 0.5 else seguir}).")
     prox_aport = proxima_aportacion()
     lines.append(f"Próximas tareas: nada hasta la revisión del {st['next_check']:%d/%m}; "
-                 f"aportación de 50 € a principios de mes ({prox_aport:%d/%m}) al producto que toque.")
+                 f"siguiente aportación de 50 € el {prox_aport:%d/%m/%Y} al producto que toque.")
     if st["inside"] != (c > float(last.sma200)):
         lines.append("⚠️ Alerta temprana: hoy está al otro lado de la media 200. No se actúa hasta la revisión.")
     elif abs(st["dist"]) < 0.02:
