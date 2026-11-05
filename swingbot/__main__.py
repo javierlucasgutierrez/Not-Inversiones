@@ -64,6 +64,8 @@ def main(argv=None):
     t.add_argument("--initial", type=float, default=50)
     t.add_argument("--monthly", type=float, default=50)
 
+    sub.add_parser("resumen", help="Parte diario del S&P 500 y de la estrategia")
+
     fo = sub.add_parser("fondeo", help="Operativa de 1 día para una cuenta de fondeo")
     fo.add_argument("--cuenta", type=float, default=10_000, help="Saldo de la cuenta")
     fo.add_argument("--historial", action="store_true", help="Señales de los últimos 6 meses")
@@ -134,6 +136,10 @@ def main(argv=None):
                     print(f"  desde {start} x{lev:g} tendencia, fuera->{out}: aportado "
                           f"{cmp._eur(p.invested.iloc[-1])} -> {cmp._eur(p.value.iloc[-1])}  "
                           f"TIR {cmp.xirr(p.flows):+.1%}  peor caída {dd:+.0%}")
+
+    elif a.cmd == "resumen":
+        from . import resumen
+        print(resumen.build())
 
     elif a.cmd == "fondeo":
         from . import fondeo
