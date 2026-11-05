@@ -1,3 +1,24 @@
 [
- {"id": "1", "fecha": "2026-11-02", "accion": "Compra", "producto": "S&P 500 3x Lev USD (Acc) · IE00B7Y34M31", "importe": 50, "comision": 1, "unidades": 0.313459, "precio": 159.51, "estado": "Confirmada"}
+ {
+  "id": "1",
+  "fecha": "2026-11-02",
+  "accion": "Compra",
+  "producto": "S&P 500 3x Lev USD (Acc) · IE00B7Y34M31",
+  "importe": 50,
+  "comision": 1,
+  "unidades": 0.313459,
+  "precio": 159.51,
+  "estado": "Confirmada"
+ },
+ {
+  "id": "2",
+  "fecha": "2026-11-05",
+  "accion": "Compra",
+  "producto": "S&P 500 3x Lev USD (Acc) · IE00B7Y34M31",
+  "importe": 50,
+  "comision": 1,
+  "unidades": 0.343272,
+  "precio": 145.66,
+  "estado": "Confirmada (unidades y precio estimados)"
+ }
 ]
