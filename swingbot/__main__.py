@@ -65,6 +65,7 @@ def main(argv=None):
     t.add_argument("--monthly", type=float, default=50)
 
     sub.add_parser("resumen", help="Parte diario del S&P 500 y de la estrategia")
+    sub.add_parser("alerta", help="Alertas de movimientos fuertes durante la sesión")
 
     fo = sub.add_parser("fondeo", help="Operativa de 1 día para una cuenta de fondeo")
     fo.add_argument("--cuenta", type=float, default=10_000, help="Saldo de la cuenta")
@@ -136,6 +137,11 @@ def main(argv=None):
                     print(f"  desde {start} x{lev:g} tendencia, fuera->{out}: aportado "
                           f"{cmp._eur(p.invested.iloc[-1])} -> {cmp._eur(p.value.iloc[-1])}  "
                           f"TIR {cmp.xirr(p.flows):+.1%}  peor caída {dd:+.0%}")
+
+    elif a.cmd == "alerta":
+        from . import alerta
+        msgs = alerta.check()
+        print("\n".join(msgs) if msgs else "Sin alertas nuevas.")
 
     elif a.cmd == "resumen":
         from . import resumen
