@@ -69,6 +69,12 @@ def check() -> list[str]:
         lado = "POR DEBAJO" if price < sma200 else "POR ENCIMA"
         out.append(f"⚠️ El S&P 500 ({_es(price, 0)}) está ahora {lado} de su media 200 ({_es(sma200, 0)}). "
                    "Alerta temprana: no se actúa hasta la revisión de fin de mes.")
+    c3 = float(df.Close.iloc[-4])
+    if price / c3 - 1 <= -0.03 and price > sma200 and "formulaA" not in done:
+        done.add("formulaA")
+        out.append(f"🎯 Posible FÓRMULA A hoy: 3 días {_pct(price / c3 - 1)} con tendencia sana. "
+                   f"Si al cierre el S&P 500 sigue por debajo de {_es(c3 * 0.97, 0)}, con el dinero "
+                   "aparte: comprar x3/x5 ~21:45 y vender a las 5 sesiones.")
     v = float(vix.iloc[-1])
     for lvl in VIX_LEVELS:
         key = f"vix{lvl}"

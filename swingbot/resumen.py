@@ -13,6 +13,7 @@ import pandas as pd
 
 from . import data, trend
 from .indicators import add_indicators, sma
+from pandas.tseries.holiday import USFederalHolidayCalendar
 
 
 def _es(v: float, d: int = 2) -> str:
@@ -67,6 +68,21 @@ def proxima_aportacion() -> pd.Timestamp:
     return first + pd.offsets.CustomBusinessDay(0, calendar=USFederalHolidayCalendar())
 
 
+def formula_a(df: pd.DataFrame) -> str:
+    """Fórmula A (dinero aparte): cae ≥3 % en 3 sesiones con el cierre por encima de la
+    media 200 → comprar x3/x5 al cierre y vender al cierre 5 sesiones después."""
+    c, c3 = float(df.Close.iloc[-1]), float(df.Close.iloc[-4])
+    ch3, sano = c / c3 - 1, c > float(df.sma200.iloc[-1])
+    if ch3 <= -0.03 and sano:
+        salida = df.index[-1] + pd.offsets.CustomBusinessDay(5, calendar=USFederalHolidayCalendar())
+        return (f"🎯 FÓRMULA A ACTIVA: 3 días {_pct(ch3)} con tendencia sana. Con el dinero aparte: "
+                f"comprar x3/x5 al cierre (~21:45) y vender al cierre del {salida:%d/%m} (5 sesiones).")
+    if not sano:
+        return f"Fórmula A: desactivada (por debajo de la media 200). 3 días {_pct(ch3)}."
+    return (f"Fórmula A: no activa (3 días {_pct(ch3)}; salta con −3,0 %, "
+            f"S&P 500 cerrando por debajo de {_es(c3 * 0.97, 0)}).")
+
+
 def build() -> str:
     df = add_indicators(data.load("^GSPC", start="2023-01-01", refresh=True))
     df["sma20"] = sma(df.Close, 20)
@@ -118,6 +134,7 @@ def build() -> str:
     prox_aport = proxima_aportacion()
     lines.append(f"Próximas tareas: nada hasta la revisión del {st['next_check']:%d/%m}; "
                  f"siguiente aportación de 50 € el {prox_aport:%d/%m/%Y} al producto que toque.")
+    lines.append(formula_a(df))
     if st["inside"] != (c > float(last.sma200)):
         lines.append("⚠️ Alerta temprana: hoy está al otro lado de la media 200. No se actúa hasta la revisión.")
     elif abs(st["dist"]) < 0.02:
