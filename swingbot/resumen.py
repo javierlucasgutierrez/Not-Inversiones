@@ -124,13 +124,17 @@ def build() -> str:
     p, n = probabilidad_cambio(float(st["dist"]), max(sesiones, 1), bool(c > float(last.sma200)))
     hoy_dentro = c > float(last.sma200)
     if p == p:  # no es NaN
-        seguir = "MANTENER x3" if hoy_dentro else "seguir en x1"
-        cambiar = "pasar a x1" if hoy_dentro else "volver al x3"
-        principal = seguir if p < 0.5 else cambiar
-        prob = 1 - p if p < 0.5 else p
-        lines.append(f"Lo más probable el {st['next_check']:%d/%m}: {principal.upper()} "
+        # p = probabilidad de acabar al otro lado de donde está HOY. La acción se nombra
+        # respecto a la posición actual (última revisión), no respecto a hoy.
+        def accion(encima: bool) -> str:
+            if st["inside"]:
+                return "MANTENER x3" if encima else "pasar a x1"
+            return "volver al x3" if encima else "seguir en x1"
+        mas = hoy_dentro if p < 0.5 else not hoy_dentro
+        prob = max(p, 1 - p)
+        lines.append(f"Lo más probable el {st['next_check']:%d/%m}: {accion(mas).upper()} "
                      f"({_es(prob * 100, 0)} % de {n} casos parecidos desde 1960; "
-                     f"{_es(min(p, 1 - p) * 100, 0)} % acabaron en {cambiar if p < 0.5 else seguir}).")
+                     f"{_es((1 - prob) * 100, 0)} % acabaron en {accion(not mas)}).")
     prox_aport = proxima_aportacion()
     lines.append(f"Próximas tareas: nada hasta la revisión del {st['next_check']:%d/%m}; "
                  f"siguiente aportación de 50 € el {prox_aport:%d/%m/%Y} al producto que toque.")
